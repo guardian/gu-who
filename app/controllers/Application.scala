@@ -21,13 +21,12 @@ object Application extends Controller {
 object Github {
   val github = GitHub.connect();
 
-  val testUsers = List(github.getMyself, github.getUser("rtyley"))
+  val testUsers = List(github.getUser("lindseydew"), github.getUser("rtyley"))
   val guardian = github.getOrganization("guardian")
   val guardianMembers = guardian.getMembers
   val allTeam = guardian.getTeams.get("all")
 
   def addToAllTeam(user: GHUser) = {
-    println("adding user to member")
     allTeam.add(user)
   }
 
