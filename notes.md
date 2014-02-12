@@ -1,15 +1,15 @@
 Steps for the bot
 -----------------
 
-Get a full list of memebers of our org, and find 'problem' users.
+Get a full list of members of our org, and find 'problem' users.
 
 Get the full list of Open issues in the 'people' repo *that have been opened by our bot*
 (GET /repos/:owner/:repo/issues?creator=gu-who-bot&state=open - note that the 'people' repo
 also contains pull-requests, which appear as issues within the GitHub API, so we have to be
 careful we don't interact with those) 
 
-Create an issue for any user that doesn't have one yet - the username should be in the subject,
-and the issue should be assigned to that user.
+Create an issue (like https://github.com/guardian/people/issues/13) for any user that doesn't
+have one yet - the username should be in the subject, and the issue should be assigned to that user.
 
 For each open issue, delta the list of labels the Issue has with what it should have
 ('TwoFactorAuth', 'FullName', 'Sponsor'). Remove/Add labels as appropriate
