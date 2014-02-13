@@ -1,3 +1,15 @@
+
+Account Requirements we could test
+----------------------------------
+
+We're limited by what the GitHub API makes possible, but that's quite a lot:
+
+* Full Name in the GitHub profile
+* TwoFactorAuth
+* users.txt fotr the audit log
+* [Stretch] The user has a validated email with GitHub - http://developer.github.com/v3/users/emails/ - this requires us to have an OAuth-secured web interface that our users can access so we can read their profile emails!
+
+
 Steps for the bot
 -----------------
 
@@ -25,4 +37,5 @@ labels on the issue, we should then close the issue.
 
 * Before adding any user to the 'all' Team, we must always check the user is STILL in the Org
 (GET /orgs/:org/members/:user) to ensure we don't add a recently _removed_ user.
+
 
