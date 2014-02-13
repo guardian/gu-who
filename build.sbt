@@ -9,6 +9,6 @@ libraryDependencies ++= Seq(
   "org.kohsuke" % "github-api" % "1.50-SNAPSHOT"
 )     
 
-resolvers += "Local Maven Repository" at "file:///Users/lindseydew/.m2/repository"
+resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
 
 play.Project.playScalaSettings
