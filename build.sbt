@@ -6,7 +6,11 @@ libraryDependencies ++= Seq(
   jdbc,
   anorm,
   cache,
-  "org.kohsuke" % "github-api" % "1.50-SNAPSHOT"
+  "org.kohsuke" % "github-api" % "1.50-SNAPSHOT",
+  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2",
+  "org.eclipse.jgit" % "org.eclipse.jgit" % "3.2.0.201312181205-r",
+  "com.madgag" %% "scala-git" % "1.11.1",
+  "com.madgag" %% "scala-git-test" % "1.11.1" % "test"
 )     
 
 resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
