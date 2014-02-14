@@ -18,7 +18,8 @@ object Github {
 
   val testUsers = List(github.getUser("lindseydew"), github.getUser("rtyley"))
   val guardian = github.getOrganization("guardian")
-  val guardianMembers = guardian.getAllMembers
+  val guardianMembers = guardian.getMembers
+
   lazy val allTeam = guardian.getTeams.get("all").getMembers
 
   def addToAllTeam(user: GHUser) = {
