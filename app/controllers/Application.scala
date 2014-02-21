@@ -13,10 +13,8 @@ trait GithubClient {
 object Application extends Controller {
 
   def index = Action {
-
     BotScript.run()
-
-    Ok(views.html.index("Your new application is ready."))
+    Ok
   }
 }
 
@@ -42,8 +40,12 @@ object BotScript {
       Issue.create(user, problemsByUser(user))
     }
 
-    for(i<-openIssues; user = i.getAssignee) {
-      Issue.update(i, problemsByUser(user))
+    for {
+      i<-openIssues;
+      user <- Option(i.getAssignee)
+      problems <- problemsByUser.get(user)
+    } {
+      Issue.update(i, problems)
     }
 
   }
@@ -51,18 +53,25 @@ object BotScript {
 
 object Bot extends GithubClient {
   val bot = conn.getUser("lindseydew")
-  lazy val openIssues = GuardianUsers.peopleRepo.getIssues(GHIssueState.OPEN).toList
+  lazy val openIssues = GuardianUsers.peopleRepo.getIssues(GHIssueState.OPEN).toList.filter(_.getUser==bot)
 }
+
 
 object Issue {
 
   def create(user: GHUser, problems: Set[AccountRequirement]): Unit = {
-    println(s"creating issue ${user} and problems ${problems}")
+    val contents = views.html.issue(user, problems).body
+
+    for(title <- problems.map(_.title(user)).headOption) {
+      val issue = GuardianUsers.peopleRepo.createIssue(title)
+      issue.body(contents)
+      issue.assignee(user)
+      for(p<-problems) { issue.label(p.issueLabel) }
+      issue.create()
+    }
   }
 
-  def update(issue: GHIssue, problems: Set[AccountRequirement]): Unit = {
-    println(s"updating issue ${issue} and problems ${problems}")
-  }
+  def update(issue: GHIssue, problems: Set[AccountRequirement]): Unit = ???
 
 }
 
@@ -92,7 +101,9 @@ trait AccountRequirement {
 
   val issueLabel: String
   val fixSummary: String
+  def title(user: GHUser) = s"@${user.getLogin}: The Guardian asks you to fix your GitHub account!"
   def isSatisfiedBy(user: GHUser): Boolean
+
 }
 
 object FullNameRequirement extends AccountRequirement {
