@@ -5,7 +5,7 @@ import play.api.mvc._
 import org.kohsuke.github._
 import collection.convert.wrapAll._
 import akka.actor.Actor
-import lib.{AccountRequirement, AccountRequirements, Organisation}
+import lib.{StateUpdate, AccountRequirement, AccountRequirements, Organisation}
 
 trait GithubClient {
   val conn = GitHub.connect();
@@ -74,17 +74,23 @@ object Issue {
     }
   }
 
+  def update(issue: GHIssue, currentProblems: Set[AccountRequirement]) {
+    val stateUpdate = StateUpdate(issue, currentProblems)
 
-  def update(issue: GHIssue, problems: Set[AccountRequirement]): Unit = {
-    val issueLabels = issue.getLabels.map(_.getName)
-    val nonAffectingIssueLabels = issueLabels.filter(AccountRequirements.All.map(_.issueLabel).contains(_)).toList
-    val currentIssues = problems.map(_.issueLabel).toList
-    val labelsToAdd = nonAffectingIssueLabels ::: currentIssues
-    //NEED PUSH ACCESS TO REPO TO AMMEND THE LABELS
-//    for(i<-currentIssues) { issue.setLabels(labelsToAdd: _*) }
-    if(currentIssues.isEmpty) issue.close()
+    if (stateUpdate.isChange) {
+      val unassociatedLabels = issue.getLabels.map(_.getName).filterNot(AccountRequirements.AllLabels)
+      val newLabelSet = currentProblems.map(_.issueLabel) ++ unassociatedLabels
+      issue.setLabels(newLabelSet.toSeq: _*)
+    }
+
+    if (stateUpdate.worthyOfComment) {
+      issue.comment(views.html.update(stateUpdate).body)
+    }
+
+    if (stateUpdate.issueCanBeClosed) {
+      issue.close()
+    }
   }
-
 }
 
 class GitHubPoller extends Actor {
