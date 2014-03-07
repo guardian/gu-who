@@ -1,8 +1,10 @@
-@(name: org.kohsuke.github.GHUser,  accountRequirements: Set[lib.AccountRequirement])
+@(name: org.kohsuke.github.GHUser, accountRequirements: Iterable[lib.AccountRequirement])
 
-Hi @@@(name.getLogin) - you're a member of the [Guardian organisation](https://github.com/guardian) on GitHub, but our audit-bot has noticed your GitHub account isn't fully set up to meet the standards we need.
+Hi @@@(name.getLogin) - you're a member of the [Guardian organisation](https://github.com/guardian) on GitHub, but
+our audit-bot has noticed your GitHub account isn't fully set up to meet the standards we need.
 
-If you're no longer supposed to be a member of the Guardian organisation, please use your [GitHub organisation settings](https://github.com/settings/organizations) page to leave.
+If you're no longer supposed to be a member of the Guardian organisation, please use your
+[GitHub organisation settings](https://github.com/settings/organizations) page to leave.
 
 Otherwise, we just need you to help us with a few things to keep the Guardian's code safe and secure on GitHub:
 
