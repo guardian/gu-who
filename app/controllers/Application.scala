@@ -59,8 +59,8 @@ object Issue {
 
     Organisation.checkAllTeamMembership(user)
 
-    val title = s"@${user.getLogin}: The Guardian asks you to fix your GitHub account!"
-    val description = views.html.issue(user, problems).body
+    val title = s"@${user.getLogin}: ${Organisation.org.getName} asks you to fix your GitHub account!"
+    val description = views.html.issue(user, Organisation.org, problems).body
 
     val issue = Organisation.peopleRepo.createIssue(title)
     for (p <- problems) { issue.label(p.issueLabel) }
