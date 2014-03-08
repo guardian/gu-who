@@ -10,12 +10,13 @@ object AccountRequirements {
 
   val AllLabels = All.map(_.issueLabel).toSet
 
-  def failedBy(user: GHUser): Set[AccountRequirement] = All.filterNot(_.isSatisfiedBy(user)).toSet
+  def failedBy(user: GHUser)(implicit orgSnapshot: OrgSnapshot): Set[AccountRequirement] =
+    All.filterNot(_.isSatisfiedBy(user)).toSet
 }
 
 trait AccountRequirement {
   val issueLabel: String
   val fixSummary: String
-  def isSatisfiedBy(user: GHUser): Boolean
+  def isSatisfiedBy(user: GHUser)(implicit orgSnapshot: OrgSnapshot): Boolean
 }
 

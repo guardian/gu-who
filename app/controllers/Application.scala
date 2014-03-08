@@ -4,7 +4,7 @@ import play.api.mvc._
 import org.kohsuke.github._
 import collection.convert.wrapAll._
 import akka.actor.Actor
-import lib.{StateUpdate, AccountRequirement, AccountRequirements, Organisation}
+import lib._
 import lib.Implicits._
 import play.api.Logger
 
@@ -24,6 +24,8 @@ object BotScript {
   def run() = {
     val users = Organisation.testUsers
     val openIssues = Bot.openIssues
+
+    implicit val orgSnapshot = OrgSnapshot(Set.empty, Organisation.twoFactorAuthDisabledUserLogins)
 
     val problemsByUser = users.map(u => u -> AccountRequirements.failedBy(u)).toMap.withDefaultValue(Set.empty)
 
@@ -50,7 +52,7 @@ object BotScript {
 
 object Bot extends GithubClient {
   val bot = conn.getMyself
-  lazy val openIssues = Organisation.peopleRepo.getIssues(GHIssueState.OPEN).toSet.filter(_.getUser==bot)
+  def openIssues() = Organisation.peopleRepo.getIssues(GHIssueState.OPEN).toSet.filter(_.getUser==bot)
 }
 
 object Issue {

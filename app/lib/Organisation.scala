@@ -32,5 +32,5 @@ object Organisation extends GithubClient {
 
   def isMemberOfAllTeam(user: GHUser): Boolean = { allTeam.contains(user) }
 
-  lazy val twoFactorAuthDisabledUserLogins = org.getMembersWithFilter("2fa_disabled").asList().toSet
+  def twoFactorAuthDisabledUserLogins = org.getMembersWithFilter("2fa_disabled").asList().toSet
 }
