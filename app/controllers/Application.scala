@@ -55,7 +55,7 @@ object BotScript {
 }
 
 object Bot extends GithubClient {
-  val bot = conn.getUser("gu-who-guardian")
+  val bot = conn.getMyself
   lazy val openIssues = Organisation.peopleRepo.getIssues(GHIssueState.OPEN).toList.filter(_.getUser==bot)
 }
 
