@@ -1,11 +1,11 @@
 package controllers
 
-import play.api._
 import play.api.mvc._
 import org.kohsuke.github._
 import collection.convert.wrapAll._
 import akka.actor.Actor
 import lib.{StateUpdate, AccountRequirement, AccountRequirements, Organisation}
+import lib.Implicits._
 
 trait GithubClient {
   val conn = GitHub.connect();
@@ -19,59 +19,52 @@ object Application extends Controller {
   }
 }
 
-
 object BotScript {
   def run() = {
-
     val users = Organisation.testUsers
     val openIssues = Bot.openIssues
 
-    val openIssuesByUser = (for(i<-openIssues) yield i.getAssignee -> i).toMap
+    val problemsByUser = users.map(u => u -> AccountRequirements.failedBy(u)).toMap.withDefaultValue(Set.empty)
 
-    val problemsByUser = (for {
-        u <- users;
-        problems = AccountRequirements.failedBy(u);
-        if(!problems.isEmpty)
-    } yield u -> problems).toMap
+    createIssuesForNewProblemUsers(problemsByUser, openIssues)
 
-    val usersWithIssuesToCreate = problemsByUser.keySet.diff(openIssuesByUser.keySet)
+    updateExisting(openIssues, problemsByUser)
+  }
 
-    for(user <- usersWithIssuesToCreate) {
-      Organisation.checkAllTeamMembership(user)
-      println("creating issue for user " + user)
-      Issue.create(user, problemsByUser(user))
-    }
-
+  def updateExisting(openIssues: Set[GHIssue], problemsByUser: Map[GHUser, Set[AccountRequirement]]) {
     for {
-      i<-openIssues;
-      user <- Option(i.getAssignee)
-      problems <- problemsByUser.get(user)
-    } {
-      println("updating issue for user " + user + " and issue " + i)
-      Issue.update(i, problems)
-    }
+      issue <- openIssues
+      user <- issue.assignee
+    } Issue.update(issue, problemsByUser(user))
+  }
 
+  def createIssuesForNewProblemUsers(problemsByUser: Map[GHUser, Set[AccountRequirement]], openIssues: Set[GHIssue]) {
+    val usersWithOpenIssues = openIssues.flatMap(_.assignee)
+    for {
+      (user, problems) <- problemsByUser -- usersWithOpenIssues
+      if problems.nonEmpty
+    } Issue.create(user, problems)
   }
 }
 
 object Bot extends GithubClient {
   val bot = conn.getMyself
-  lazy val openIssues = Organisation.peopleRepo.getIssues(GHIssueState.OPEN).toList.filter(_.getUser==bot)
+  lazy val openIssues = Organisation.peopleRepo.getIssues(GHIssueState.OPEN).toSet.filter(_.getUser==bot)
 }
-
 
 object Issue {
 
-  def create(user: GHUser, problems: Set[AccountRequirement]): Unit = {
-    val contents = views.html.issue(user, problems).body
+  def create(user: GHUser, problems: Set[AccountRequirement]) {
+    require(problems.nonEmpty)
 
-    for(title <- problems.map(_.title(user)).headOption) {
-      val issue = Organisation.peopleRepo.createIssue(title)
-      issue.body(contents)
-      issue.assignee(user)
-      for(p<-problems) { issue.label(p.issueLabel) }
-      issue.create()
-    }
+    Organisation.checkAllTeamMembership(user)
+
+    val title = s"@${user.getLogin}: The Guardian asks you to fix your GitHub account!"
+    val description = views.html.issue(user, problems).body
+
+    val issue = Organisation.peopleRepo.createIssue(title)
+    for (p <- problems) { issue.label(p.issueLabel) }
+    issue.assignee(user).body(description).create()
   }
 
   def update(issue: GHIssue, currentProblems: Set[AccountRequirement]) {

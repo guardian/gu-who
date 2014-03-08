@@ -39,3 +39,8 @@ labels on the issue, we should then close the issue.
 (GET /orgs/:org/members/:user) to ensure we don't add a recently _removed_ user.
 
 
+Test cases
+----------
+
+If we have created an issue assigned to a user who is no longer part of the org, we should close that
+issue.
