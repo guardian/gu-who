@@ -6,6 +6,7 @@ import collection.convert.wrapAll._
 import akka.actor.Actor
 import lib.{StateUpdate, AccountRequirement, AccountRequirements, Organisation}
 import lib.Implicits._
+import play.api.Logger
 
 trait GithubClient {
   val conn = GitHub.connect();
@@ -57,6 +58,8 @@ object Issue {
   def create(user: GHUser, problems: Set[AccountRequirement]) {
     require(problems.nonEmpty)
 
+    Logger.info(s"Creating issue for ${user.getLogin} $problems")
+
     Organisation.checkAllTeamMembership(user)
 
     val title = s"@${user.getLogin}: ${Organisation.org.getName} asks you to fix your GitHub account!"
@@ -69,6 +72,7 @@ object Issue {
 
   def update(issue: GHIssue, currentProblems: Set[AccountRequirement]) {
     val stateUpdate = StateUpdate(issue, currentProblems)
+    Logger.info(s"Updating issue for ${issue.assignee} with $stateUpdate")
 
     if (stateUpdate.isChange) {
       val unassociatedLabels = issue.getLabels.map(_.getName).filterNot(AccountRequirements.AllLabels)

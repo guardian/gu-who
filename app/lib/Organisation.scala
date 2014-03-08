@@ -3,6 +3,7 @@ package lib
 import org.kohsuke.github.GHUser
 import controllers.GithubClient
 import collection.convert.wrapAsScala._
+import play.api.Logger
 
 object Organisation extends GithubClient {
 
@@ -11,6 +12,8 @@ object Organisation extends GithubClient {
     require(orgs.size == 1, "The bot should have membership of exactly one org.")
     orgs.head
   }
+
+  Logger.info(s"Bot org is ${org.getLogin}")
   
   val orgMembers = org.getMembers
   lazy val peopleRepo = org.getRepository("people")
