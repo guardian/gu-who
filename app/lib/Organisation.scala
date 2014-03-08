@@ -2,15 +2,21 @@ package lib
 
 import org.kohsuke.github.GHUser
 import controllers.GithubClient
+import collection.convert.wrapAsScala._
 
 object Organisation extends GithubClient {
 
-  val guardian = conn.getOrganization("guardian")
-  val guardianMembers = guardian.getMembers
-  lazy val peopleRepo = conn.getRepository("guardian/people")
-  val testUsers = List(conn.getUser("lindseydew"), conn.getUser("rtyley"))
+  val org = {
+    val orgs = conn.getMyOrganizations.values
+    require(orgs.size == 1, "The bot should have membership of exactly one org.")
+    orgs.head
+  }
+  
+  val orgMembers = org.getMembers
+  lazy val peopleRepo = org.getRepository("people")
+  val testUsers = Seq(conn.getUser("lindseydew"), conn.getUser("rtyley"))
 
-  lazy val allTeam = guardian.getTeams.get("all").getMembers
+  lazy val allTeam = org.getTeams.get("all").getMembers
 
   def getUser(user: GHUser): GHUser = conn.getUser(user.getLogin)
 
@@ -23,5 +29,5 @@ object Organisation extends GithubClient {
 
   def isMemberOfAllTeam(user: GHUser): Boolean = { allTeam.contains(user) }
 
-  lazy val twoFactorAuthDisabledUserLogins = guardian.getMembersWithFilter("2fa_disabled").asList()
+  lazy val twoFactorAuthDisabledUserLogins = org.getMembersWithFilter("2fa_disabled").asList().toSet
 }
