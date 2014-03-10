@@ -3,6 +3,3 @@ language: scala
 jdk:
   - openjdk7
 
-script:
-  - sbt compile
-
