@@ -1,0 +1,13 @@
+@(user: org.kohsuke.github.GHUser, organ: org.kohsuke.github.GHOrganization, accountRequirements: Iterable[lib.AccountRequirement])
+
+Hi @@@(user.getLogin) - you're a member of [@{organ.getName}](https://github.com/@{organ.getLogin})'s organisation on GitHub, but our audit-bot has noticed your GitHub account isn't fully set up to meet the standards we need.
+
+If you're no longer supposed to be a member of the organisation, please use your [GitHub organisation settings](https://github.com/settings/organizations) page to leave.
+
+Otherwise, we just need you to help us with a few things to keep our code safe and secure on GitHub:
+
+@for(requirement<-accountRequirements) {
+* @requirement.fixSummary(organ)
+}
+
+Thanks for helping us out - it makes our lives a lot easier, and help keeps our code secure!

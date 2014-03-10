@@ -30,6 +30,7 @@ object PeopleRepo {
         invoke(repo.git.fetch())
         repo
       } else {
+        gitdir.doCreateParents()
         Logger.info("Cloning new Git repo...")
         invoke(Git.cloneRepository().setBare(true).setDirectory(gitdir).setURI(uri)).getRepository
       }
@@ -43,7 +44,11 @@ object PeopleRepo {
 
     val lines = Resource.fromInputStream(latestUserFileGitId.open.openStream()).lines()
 
-    lines.collect { case UsernameRegex(username) => username }.toSet
+    val sponsoredUserNames = lines.collect { case UsernameRegex(username) => username }.toSet
+
+    Logger.info(s"Found ${sponsoredUserNames.size} sponsored usernames")
+
+    sponsoredUserNames
   }
 
 }
