@@ -1,27 +1,26 @@
 package lib
 
-import org.kohsuke.github.GHIssue
+import org.kohsuke.github.{GHOrganization, GHUser, GHIssue}
 import collection.convert.wrapAll._
+import Implicits._
 
-object StateUpdate {
-  def apply(issue: GHIssue, currentProblems: Set[AccountRequirement]): StateUpdate = {
-    val oldLabels = issue.getLabels.map(_.getName).toSet
-
-    val oldBotLabels = oldLabels.filter(AccountRequirements.AllLabels)
-
-    val oldProblems = oldBotLabels.map(AccountRequirements.RequirementsByLabel)
-
-    StateUpdate(oldProblems, currentProblems)
-  }
+sealed trait StateUpdate {
+  val issueCanBeClosed: Boolean
 }
 
-case class StateUpdate(oldProblems: Set[AccountRequirement], currentProblems: Set[AccountRequirement]) {
+case object UserHasLeftOrg extends StateUpdate {
+  override val issueCanBeClosed = true
+}
+
+case class MemberUserUpdate(oldProblems: Set[AccountRequirement],
+                            currentProblems: Set[AccountRequirement],
+                            orgMembershipWillBeConcealed: Boolean) extends StateUpdate {
 
   val isChange = oldProblems != currentProblems
 
   val issueCanBeClosed = currentProblems.isEmpty
 
-  val worthyOfComment = issueCanBeClosed || isChange
+  val worthyOfComment = issueCanBeClosed || isChange || orgMembershipWillBeConcealed
 
   val fixedRequirements = oldProblems -- currentProblems
 }
