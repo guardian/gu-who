@@ -11,7 +11,6 @@ import play.api.Logger
 import Implicits._
 
 object OrgSnapshot {
-  val testUserLogins = Set("rtyley", "lindseydew")
   
   def apply(auditDef: AuditDef): Future[OrgSnapshot] = {
     val org = auditDef.org
