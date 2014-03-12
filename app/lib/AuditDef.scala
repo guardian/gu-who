@@ -1,13 +1,18 @@
 package lib
 
-import org.kohsuke.github.{GitHub, GHOrganization}
+import org.kohsuke.github.GHOrganization
 import collection.convert.wrapAsScala._
 
 case class AuditDef(githubApiKey: String, org: GHOrganization) {
 
-  def conn() = GitHub.connectUsingOAuth(githubApiKey)
+  def conn() = OkGitHub.conn(githubApiKey)
 
-  lazy val bot = conn().getMyself
+  lazy val bot = {
+    val c = conn()
 
-  require(conn().getMyOrganizations.values.map(_.getId).toSet.contains(org.getId))
+    require(c.getMyOrganizations.values.map(_.getId).toSet.contains(org.getId))
+
+    c.getMyself
+  }
+
 }

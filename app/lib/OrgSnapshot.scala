@@ -1,6 +1,6 @@
 package lib
 
-import org.kohsuke.github.{GHOrganization, GHIssueState, GHIssue, GHUser}
+import org.kohsuke.github._
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import collection.convert.wrapAsScala._
 import concurrent._
@@ -15,11 +15,12 @@ object OrgSnapshot {
   def apply(auditDef: AuditDef): Future[OrgSnapshot] = {
     val org = auditDef.org
     val peopleRepo = org.peopleRepo
+    val conn = auditDef.conn()
 
     val usersF = future {
-      org.getMembers.map { u => auditDef.conn().getUser(u.getLogin) }.toSet
+      org.getMembers.map { u => conn.getUser(u.getLogin) }.toSet
     } flatMap {
-      Future.traverse(_)(u => future { auditDef.conn().getUser(u.getLogin) })
+      Future.traverse(_)(u => future { conn.getUser(u.getLogin) })
     } andThen { case us => Logger.info(s"User count: ${us.map(_.size)}") }
 
     val sponsoredUserLoginsF = future {
