@@ -18,9 +18,11 @@ object Implicits {
     lazy val allTeam = org.getTeams()("all")
 
     def testMembership(user: GHUser): Boolean = {
-      val isMemberOfOrg = user.isMemberOf(org)
-      if (isMemberOfOrg) { allTeam.add(user) }
-      isMemberOfOrg
+      if (user.isMemberOf(allTeam)) true else {
+        val orgMember = user.isMemberOf(org)
+        if (orgMember) { allTeam.add(user) }
+        orgMember
+      }
     }
   }
 
