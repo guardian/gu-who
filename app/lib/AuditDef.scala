@@ -1,18 +1,44 @@
 package lib
 
-import org.kohsuke.github.GHOrganization
 import collection.convert.wrapAsScala._
+import scalax.file.Path
+import com.squareup.okhttp.{OkHttpClient, HttpResponseCache}
+import scalax.file.ImplicitConversions._
+import org.kohsuke.github.GitHub
+import java.net.URL
 
-case class AuditDef(githubApiKey: String, org: GHOrganization) {
+object AuditDef {
+  def safelyCreateFor(orgName: String, apiKey: String): AuditDef = {
+    val org = GitHub.connectUsingOAuth(apiKey).getOrganization(orgName)
+    AuditDef(org.getLogin, apiKey: String)
+  }
+}
 
-  def conn() = OkGitHub.conn(githubApiKey)
+case class AuditDef(orgLogin: String, apiKey: String) {
 
-  lazy val bot = {
+  val workingDir = Path.fromString("working-dir") / orgLogin.toLowerCase
+
+  val httpResponseCache = new HttpResponseCache(workingDir / "http-cache", 5 * 1024 * 1024)
+
+  lazy val okHttpClient = {
+    val client = new OkHttpClient
+    client.setOkResponseCache(httpResponseCache)
+    client
+  }
+
+  def conn() = new GitHub(null, apiKey, null) {
+    override def open(url: URL) = okHttpClient.open(url)
+  }
+
+  lazy val (org, bot) = {
     val c = conn()
+
+    val org = c.getOrganization(orgLogin)
 
     require(c.getMyOrganizations.values.map(_.getId).toSet.contains(org.getId))
 
-    c.getMyself
+    (org, c.getMyself)
   }
+
 
 }

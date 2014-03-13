@@ -25,9 +25,9 @@ object OrgSnapshot {
 
     val sponsoredUserLoginsF = future {
       PeopleRepo.getSponsoredUserLogins(
-        Path("sponsors") / org.getLogin,
+        auditDef.workingDir,
         peopleRepo.gitHttpTransportUrl,
-        Some(new UsernamePasswordCredentialsProvider(auditDef.githubApiKey, ""))
+        Some(new UsernamePasswordCredentialsProvider(auditDef.apiKey, ""))
       )
     }
 
