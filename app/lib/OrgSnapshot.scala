@@ -33,7 +33,7 @@ object OrgSnapshot {
 
     val twoFactorAuthDisabledUsersF = future {
       org.getMembersWithFilter("2fa_disabled").asList().toSet
-    } andThen { case us => Logger.info(s"2fa_disabled count: ${us.map(_.size)}") }
+    } andThen { case us => Logger.info(s"2fa_disabled count: ${us.map(_.size)}") }  
 
     val openIssuesF = future {
       peopleRepo.getIssues(GHIssueState.OPEN).toSet.filter(_.getUser==auditDef.bot)
@@ -58,11 +58,22 @@ case class OrgSnapshot(
 
   lazy val problemsByUser = users.map(u => u -> AccountRequirements.failedBy(u)(this)).toMap.withDefaultValue(Set.empty)
 
-  def updateExistingIssues() {
+  def updateExistingAssignedIssues() {
     for {
       issue <- openIssues
       user <- issue.assignee
     } OrgUserProblems(org, user, problemsByUser(user)).updateIssue(issue)
+  }
+
+  def closeUnassignedIssues() {
+    for {
+      issue <- openIssues if issue.assignee.isEmpty
+    } {
+      issue.comment(
+        "Closing this issue as it's not assigned to any user, so this bot can not process it. " +
+          "Perhaps the user account was deleted?")
+      issue.close()
+    }
   }
 
   def createIssuesForNewProblemUsers() {
