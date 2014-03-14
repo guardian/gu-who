@@ -9,6 +9,7 @@ import org.eclipse.jgit.lib.Repository
 import scalax.file.ImplicitConversions._
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import play.api.Logger
+import collection.convert.wrapAll._
 
 object PeopleRepo {
 
@@ -17,6 +18,7 @@ object PeopleRepo {
   def getSponsoredUserLogins(dataDirectory: File, uri: String, credentials: Option[CredentialsProvider] = None): Set[String] = {
 
     def invoke[C <: GitCommand[_], R](command: TransportCommand[C, R]): R = {
+      command.setTimeout(5)
       credentials.foreach(command.setCredentialsProvider)
       command.call()
     }
@@ -32,7 +34,9 @@ object PeopleRepo {
       } else {
         gitdir.doCreateParents()
         Logger.info("Cloning new Git repo...")
-        invoke(Git.cloneRepository().setBare(true).setDirectory(gitdir).setURI(uri)).getRepository
+        val cloneCommand =
+          Git.cloneRepository().setBare(true).setDirectory(gitdir).setURI(uri).setBranchesToClone(Seq("master"))
+        invoke(cloneCommand).getRepository
       }
     }
 
