@@ -6,6 +6,9 @@ import com.squareup.okhttp.{OkHttpClient, HttpResponseCache}
 import scalax.file.ImplicitConversions._
 import org.kohsuke.github.GitHub
 import java.net.URL
+import Implicits._
+import org.joda.time.DateTime
+import com.github.nscala_time.time.Imports._
 
 object AuditDef {
   def safelyCreateFor(orgName: String, apiKey: String): AuditDef = {
@@ -35,10 +38,13 @@ case class AuditDef(orgLogin: String, apiKey: String) {
 
     val org = c.getOrganization(orgLogin)
 
-    require(c.getMyOrganizations.values.map(_.getId).toSet.contains(org.getId))
+    val bot = c.getMyself
 
-    (org, c.getMyself)
+    require(bot.isMemberOf(org))
+
+    (org, bot)
   }
 
+  lazy val seemsLegit = bot.isMemberOf(org) && org.getPublicMembers.exists(_.createdAt < DateTime.now - 3.months)
 
 }

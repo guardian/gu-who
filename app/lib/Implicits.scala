@@ -1,9 +1,11 @@
 package lib
 
-import org.kohsuke.github.{GHUser, GHTeam, GHOrganization, GHIssue}
+import org.kohsuke.github._
 import collection.convert.wrapAsScala._
 import scala.util.{Failure, Success, Try}
 import play.api.Logger
+import org.joda.time.format.ISODateTimeFormat
+import com.github.nscala_time.time.Imports._
 
 object Implicits {
   implicit class RichIssue(issue: GHIssue) {
@@ -32,5 +34,13 @@ object Implicits {
         team.add(user)
       }
     }
+  }
+
+  val dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ")
+
+  implicit class RichPerson(person: GHPerson) {
+
+    lazy val createdAt = dateTimeFormatter.parseDateTime(person.getCreatedAt)
+
   }
 }

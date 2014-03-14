@@ -1,27 +1,31 @@
 package controllers
 
 import play.api.mvc._
-import collection.convert.wrapAll._
 import lib._
 import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
 
 object Application extends Controller {
 
   def audit(orgName: String, apiKey: String) = Action.async {
     val auditDef = AuditDef.safelyCreateFor(orgName, apiKey)
 
-    for (orgSnapshot <- OrgSnapshot(auditDef)) yield {
+    if (auditDef.seemsLegit) {
+      for (orgSnapshot <- OrgSnapshot(auditDef)) yield {
 
-      orgSnapshot.createIssuesForNewProblemUsers()
+        orgSnapshot.createIssuesForNewProblemUsers()
 
-      orgSnapshot.updateExistingIssues()
+        orgSnapshot.updateExistingAssignedIssues()
 
-      val cache = auditDef.httpResponseCache
-      Logger.info("hit "+cache.getHitCount()+" net="+cache.getNetworkCount()+" req="+cache.getRequestCount())
+        orgSnapshot.closeUnassignedIssues()
 
-      Ok
-    }
+        val cache = auditDef.httpResponseCache
+        Logger.info("hit "+cache.getHitCount()+" net="+cache.getNetworkCount()+" req="+cache.getRequestCount())
+
+        Ok
+      }
+    } else future { NotAcceptable }
   }
 
 }
