@@ -31,6 +31,7 @@ object FullNameRequirement extends AccountRequirement {
 
 }
 
+// requires a 'users.txt' file in the people repo
 object SponsorRequirement extends AccountRequirement {
 
   override val issueLabel = "Sponsor"
@@ -45,6 +46,7 @@ object SponsorRequirement extends AccountRequirement {
 
 }
 
+// requires Owner permissions
 object TwoFactorAuthRequirement extends AccountRequirement {
 
   override val issueLabel = "TwoFactorAuth"
