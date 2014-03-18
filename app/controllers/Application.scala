@@ -19,10 +19,7 @@ object Application extends Controller {
         orgSnapshot.updateExistingAssignedIssues()
 
         orgSnapshot.closeUnassignedIssues()
-
-        val cache = auditDef.httpResponseCache
-        Logger.info("hit "+cache.getHitCount()+" net="+cache.getNetworkCount()+" req="+cache.getRequestCount())
-
+        
         Ok
       }
     } else future { NotAcceptable }

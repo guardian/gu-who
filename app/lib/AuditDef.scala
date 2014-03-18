@@ -9,8 +9,11 @@ import java.net.URL
 import Implicits._
 import org.joda.time.DateTime
 import com.github.nscala_time.time.Imports._
+import play.api.Logger
 
 object AuditDef {
+  val parentWorkDir = Path.fromString("/tmp") / "working-dir"
+
   def safelyCreateFor(orgName: String, apiKey: String): AuditDef = {
     val org = GitHub.connectUsingOAuth(apiKey).getOrganization(orgName)
     AuditDef(org.getLogin, apiKey: String)
@@ -19,13 +22,22 @@ object AuditDef {
 
 case class AuditDef(orgLogin: String, apiKey: String) {
 
-  val workingDir = Path.fromString("working-dir") / orgLogin.toLowerCase
 
-  val httpResponseCache = new HttpResponseCache(workingDir / "http-cache", 5 * 1024 * 1024)
+  val workingDir = AuditDef.parentWorkDir / orgLogin.toLowerCase
+
+  workingDir.mkdirs()
 
   lazy val okHttpClient = {
     val client = new OkHttpClient
-    client.setOkResponseCache(httpResponseCache)
+
+    val responseCacheDir = workingDir / "http-cache"
+    responseCacheDir.mkdirs()
+    if (responseCacheDir.exists) {
+      val httpResponseCache = new HttpResponseCache(responseCacheDir, 5 * 1024 * 1024)
+      client.setOkResponseCache(httpResponseCache)
+    } else {
+      Logger.warn(s"Couldn't create HttpResponseCache dir ${responseCacheDir.path}")
+    }
     client
   }
 
