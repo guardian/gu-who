@@ -31,6 +31,10 @@ object OrgSnapshot {
       )
     }
 
+    val botUsersF = future {
+      org.botsTeam.getMembers.toSet
+    } andThen { case us => Logger.info(s"bots team count: ${us.map(_.size)}") }
+
     val twoFactorAuthDisabledUsersF = future {
       org.getMembersWithFilter("2fa_disabled").asList().toSet
     } andThen { case us => Logger.info(s"2fa_disabled count: ${us.map(_.size)}") }  
@@ -44,13 +48,15 @@ object OrgSnapshot {
       sponsoredUserLogins <- sponsoredUserLoginsF
       twoFactorAuthDisabledUsers <- twoFactorAuthDisabledUsersF
       openIssues <- openIssuesF
-    } yield OrgSnapshot(org, users, sponsoredUserLogins, twoFactorAuthDisabledUsers, openIssues)
+      botUsers <- botUsersF
+    } yield OrgSnapshot(org, users, botUsers, sponsoredUserLogins, twoFactorAuthDisabledUsers, openIssues)
   }
 }
 
 case class OrgSnapshot(
   org: GHOrganization,
   users: Set[GHUser],
+  botUsers: Set[GHUser],
   sponsoredUserLogins: Set[String],
   twoFactorAuthDisabledUserLogins: Set[GHUser],
   openIssues: Set[GHIssue]
