@@ -5,7 +5,7 @@ version := "1.0-SNAPSHOT"
 libraryDependencies ++= Seq(
   "com.madgag" % "github-api" % "1.49.99.0.9",
   "com.github.nscala-time" %% "nscala-time" % "0.8.0",
-  "com.squareup.okhttp" % "okhttp" % "1.5.1",
+  "com.squareup.okhttp" % "okhttp" % "1.5.3",
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2",
   "org.eclipse.jgit" % "org.eclipse.jgit" % "3.3.0.201403021825-r",
   "com.madgag" %% "scala-git" % "1.11.1",
