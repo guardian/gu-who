@@ -36,7 +36,7 @@ object OrgSnapshot {
     } andThen { case us => Logger.info(s"bots team count: ${us.map(_.size)}") }
 
     val twoFactorAuthDisabledUsersF = future {
-      org.getMembersWithFilter("2fa_disabled").asList().toSet
+      org.listMembersWithFilter("2fa_disabled").asList().toSet
     } andThen { case us => Logger.info(s"2fa_disabled count: ${us.map(_.size)}") }  
 
     val openIssuesF = future {

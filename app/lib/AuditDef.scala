@@ -57,6 +57,6 @@ case class AuditDef(orgLogin: String, apiKey: String) {
     (org, bot)
   }
 
-  lazy val seemsLegit = bot.isMemberOf(org) && org.getPublicMembers.exists(_.createdAt < DateTime.now - 3.months)
+  lazy val seemsLegit = bot.isMemberOf(org) && org.listPublicMembers.exists(_.createdAt < DateTime.now - 3.months)
 
 }
