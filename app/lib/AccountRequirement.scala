@@ -8,15 +8,17 @@ object AccountRequirements {
 
   val RequirementsByLabel = All.map(r => r.issueLabel -> r).toMap
 
-  val AllLabels = All.map(_.issueLabel).toSet
+  def applicableTo(user: GHUser)(implicit orgSnapshot: OrgSnapshot): Set[AccountRequirement] =
+    All.filter(_.appliesTo(user)).toSet
 
   def failedBy(user: GHUser)(implicit orgSnapshot: OrgSnapshot): Set[AccountRequirement] =
-    All.filterNot(_.isSatisfiedBy(user)).toSet
+    applicableTo(user).filterNot(_.isSatisfiedBy(user))
 }
 
 trait AccountRequirement {
   val issueLabel: String
   def fixSummary(implicit org: GHOrganization): String
+  def appliesTo(user: GHUser)(implicit orgSnapshot: OrgSnapshot): Boolean
   def isSatisfiedBy(user: GHUser)(implicit orgSnapshot: OrgSnapshot): Boolean
 }
 
@@ -29,6 +31,7 @@ object FullNameRequirement extends AccountRequirement {
   def isSatisfiedBy(user: GHUser)(implicit orgSnapshot: OrgSnapshot) =
     Option(user.getName()).map(_.length > 5).getOrElse(false)
 
+  override def appliesTo(user: GHUser)(implicit orgSnapshot: OrgSnapshot) = true
 }
 
 // requires a 'users.txt' file in the people repo
@@ -44,6 +47,7 @@ object SponsorRequirement extends AccountRequirement {
   override def isSatisfiedBy(user: GHUser)(implicit orgSnapshot: OrgSnapshot) =
     orgSnapshot.sponsoredUserLogins.contains(user.getLogin)
 
+  override def appliesTo(user: GHUser)(implicit orgSnapshot: OrgSnapshot) = true
 }
 
 // requires Owner permissions
@@ -58,4 +62,5 @@ object TwoFactorAuthRequirement extends AccountRequirement {
   override def isSatisfiedBy(user: GHUser)(implicit orgSnapshot: OrgSnapshot) =
     !orgSnapshot.twoFactorAuthDisabledUserLogins.contains(user)
 
+  override def appliesTo(user: GHUser)(implicit orgSnapshot: OrgSnapshot) = !orgSnapshot.botUsers.contains(user)
 }

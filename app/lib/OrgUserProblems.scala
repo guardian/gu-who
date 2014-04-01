@@ -5,7 +5,9 @@ import Implicits._
 import collection.convert.wrapAsScala._
 import play.api.Logger
 
-case class OrgUserProblems(org: GHOrganization, user: GHUser, problems: Set[AccountRequirement]) {
+case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirements: Set[AccountRequirement], problems: Set[AccountRequirement]) {
+
+  lazy val applicableLabels = applicableRequirements.map(_.issueLabel)
 
   def createIssue() {
     require(problems.nonEmpty)
@@ -37,7 +39,7 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, problems: Set[Acco
         }
 
         if (update.isChange) {
-          val unassociatedLabels = issue.labelNames.filterNot(AccountRequirements.AllLabels)
+          val unassociatedLabels = issue.labelNames.filterNot(applicableLabels)
           val newLabelSet = problems.map(_.issueLabel) ++ unassociatedLabels
           issue.setLabels(newLabelSet.toSeq: _*)
         }
@@ -56,7 +58,7 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, problems: Set[Acco
     if (org.testMembership(user)) {
       val oldLabels = issue.getLabels.map(_.getName).toSet
 
-      val oldBotLabels = oldLabels.filter(AccountRequirements.AllLabels)
+      val oldBotLabels = oldLabels.filter(applicableLabels)
 
       val oldProblems = oldBotLabels.map(AccountRequirements.RequirementsByLabel)
 

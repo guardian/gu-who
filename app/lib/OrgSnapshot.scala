@@ -62,13 +62,19 @@ case class OrgSnapshot(
   openIssues: Set[GHIssue]
 ) {
 
-  lazy val problemsByUser = users.map(u => u -> AccountRequirements.failedBy(u)(this)).toMap.withDefaultValue(Set.empty)
+  lazy val orgUserProblemsByUser = users.map {
+    user =>
+      val applicableRequirements = AccountRequirements.applicableTo(user)(this)
+      val failedRequirements = applicableRequirements.filterNot(_.isSatisfiedBy(user)(this))
+      user -> OrgUserProblems(org, user, applicableRequirements, failedRequirements)
+  }.toMap
 
   def updateExistingAssignedIssues() {
     for {
       issue <- openIssues
       user <- issue.assignee
-    } OrgUserProblems(org, user, problemsByUser(user)).updateIssue(issue)
+      orgUserProblems <- orgUserProblemsByUser.get(user)
+    } orgUserProblems.updateIssue(issue)
   }
 
   def closeUnassignedIssues() {
@@ -85,8 +91,8 @@ case class OrgSnapshot(
   def createIssuesForNewProblemUsers() {
     val usersWithOpenIssues = openIssues.flatMap(_.assignee)
     for {
-      (user, problems) <- problemsByUser -- usersWithOpenIssues
-      if problems.nonEmpty
-    } OrgUserProblems(org, user, problems).createIssue()
+      (user, orgUserProblems) <- orgUserProblemsByUser -- usersWithOpenIssues
+      if orgUserProblems.problems.nonEmpty
+    } orgUserProblems.createIssue()
   }
 }
