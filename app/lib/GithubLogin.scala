@@ -3,8 +3,8 @@ package lib
 import java.net.URLEncoder
 
 trait GithubLogin {
-    abstract val baseUrl: String
-    abstract val queryStringParams: Map[String, String]
+    val baseUrl: String
+    val queryStringParams: Map[String, String]
     val clientId = "312fb1f543eff4c2a69c"
     val clientSecret = "26a2a723f0c4482ff4c562c29bdd973f483768fd"
     val scope = "read:org,write:org"
