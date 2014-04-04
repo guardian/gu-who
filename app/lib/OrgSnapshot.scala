@@ -9,6 +9,7 @@ import scalax.file._
 import scalax.file.ImplicitConversions._
 import play.api.Logger
 import Implicits._
+import scala.util.{Failure, Success, Try}
 
 object OrgSnapshot {
   
@@ -46,7 +47,7 @@ object OrgSnapshot {
     for {
       users <- usersF
       sponsoredUserLogins <- sponsoredUserLoginsF
-      twoFactorAuthDisabledUsers <- twoFactorAuthDisabledUsersF
+      twoFactorAuthDisabledUsers <- twoFactorAuthDisabledUsersF.trying
       openIssues <- openIssuesF
       botUsers <- botUsersF
     } yield OrgSnapshot(org, users, botUsers, sponsoredUserLogins, twoFactorAuthDisabledUsers, openIssues)
@@ -58,16 +59,29 @@ case class OrgSnapshot(
   users: Set[GHUser],
   botUsers: Set[GHUser],
   sponsoredUserLogins: Set[String],
-  twoFactorAuthDisabledUserLogins: Set[GHUser],
+  twoFactorAuthDisabledUserLogins: Try[Set[GHUser]],
   openIssues: Set[GHIssue]
 ) {
 
+  private lazy val evaluatorsByRequirement= AccountRequirements.All.map(ar => ar -> ar.userEvaluatorFor(this)).toMap
+
+  lazy val availableRequirementEvaluators: Iterable[AccountRequirement#UserEvaluator] = evaluatorsByRequirement.collect { case (_, Success(evaluator)) => evaluator }
+
+  lazy val requirementsWithUnavailableEvaluators = evaluatorsByRequirement.collect { case (ar, Failure(t)) => ar -> t }
+
   lazy val orgUserProblemsByUser = users.map {
     user =>
-      val applicableRequirements = AccountRequirements.applicableTo(user)(this)
-      val failedRequirements = applicableRequirements.filterNot(_.isSatisfiedBy(user)(this))
-      user -> OrgUserProblems(org, user, applicableRequirements, failedRequirements)
+      val applicableAvailableEvaluators = availableRequirementEvaluators.filter(_.appliesTo(user)).toSet
+
+      user -> OrgUserProblems(
+        org,
+        user,
+        applicableRequirements = applicableAvailableEvaluators.map(_.requirement),
+        problems = applicableAvailableEvaluators.filterNot(_.isSatisfiedBy(user)).map(_.requirement)
+      )
   }.toMap
+
+  lazy val orgUserProblemStats = orgUserProblemsByUser.values.map(_.problems.size).groupBy(identity).mapValues(_.size)
 
   def updateExistingAssignedIssues() {
     for {

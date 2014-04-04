@@ -2,12 +2,20 @@ package lib
 
 import org.kohsuke.github._
 import collection.convert.wrapAsScala._
-import scala.util.{Failure, Success, Try}
-import play.api.Logger
-import org.joda.time.format.ISODateTimeFormat
+import scala.util.{Success, Try}
 import com.github.nscala_time.time.Imports._
+import scala.concurrent._
+import ExecutionContext.Implicits.global
 
 object Implicits {
+  implicit class RichFuture[S](f: Future[S]) {
+    lazy val trying = {
+      val p = Promise[Try[S]]()
+      f.onComplete { case t => p.complete(Success(t)) }
+      p.future
+    }
+  }
+
   implicit class RichIssue(issue: GHIssue) {
     lazy val assignee = Option(issue.getAssignee)
 
