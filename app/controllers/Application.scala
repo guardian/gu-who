@@ -5,17 +5,11 @@ import lib._
 import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
-import play.api.libs.ws.WS._
 import play.api.libs.ws.WS
-import play.api.libs.json._
 import org.kohsuke.github.{GitHub, GHIssueState}
-import scala.util.matching.Regex
-import play.api.libs.oauth.{OAuth, ServiceInfo, ConsumerKey}
-import java.net.URLEncoder
-import play.api.libs.json.JsSuccess
 import play.api.libs.json.JsString
 import scala.Some
-
+import collection.convert.wrapAsScala._
 
 object Application extends Controller {
 
@@ -54,7 +48,6 @@ object Application extends Controller {
                   .withHeaders(("Accept", "application/json"))
                   .post("")
 
-
       resFT.map{ res =>
         res.json \ "access_token" match {
           case JsString(accessCode) => Redirect("/choose-your-org").withSession("userId" -> accessCode)
@@ -63,11 +56,12 @@ object Application extends Controller {
     }
   }
 
-//rename this endpoint
   def chooseYourOrg = Action { req =>
     req.session.get("userId") match {
       case Some(accessToken) => {
-        Ok(views.html.orgs())
+        val conn = GitHub.connectUsingOAuth(accessToken)
+        val orgs = conn.getMyOrganizations().keySet().toList
+        Ok(views.html.orgs(orgs))
       }
       case None => Ok(views.html.index())
     }

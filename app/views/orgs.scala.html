@@ -1,3 +1,5 @@
+@(orgs: List[String])
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,5 +7,11 @@
 </head>
 <body>
     <p>this is a logged in page</p>
+    <p>Audit your organisation</p>
+    @for(org <- orgs) {
+        <form method="post" action="/audit/@org">
+            <button>@org</button>
+        </form>
+    }
 </body>
 </html>
