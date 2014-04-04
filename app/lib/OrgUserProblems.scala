@@ -15,7 +15,7 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
     if (org.testMembership(user)) {
       Logger.info(s"Creating issue for ${user.getLogin} $problems")
 
-      val title = s"@${user.getLogin}: ${org.getName} asks you to fix your GitHub account!"
+      val title = s"@${user.getLogin}: ${org.displayName} asks you to fix your GitHub account!"
       val description = views.html.issue(user, org, problems).body
 
       val issue = org.peopleRepo.createIssue(title)

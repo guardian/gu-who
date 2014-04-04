@@ -42,7 +42,7 @@ object SponsorRequirement extends AccountRequirement {
   override def fixSummary(implicit org: GHOrganization) =
     "Get a Pull-Request opened to add your username to our " +
       s"[users.txt](https://github.com/${org.getLogin}/people/blob/master/users.txt) file " +
-      s"_- ideally, a Tech Lead or Dev Manager at ${org.getName} should open this request for you_."
+      s"_- ideally, a Tech Lead or Dev Manager at ${org.displayName} should open this request for you_."
 
   override def isSatisfiedBy(user: GHUser)(implicit orgSnapshot: OrgSnapshot) =
     orgSnapshot.sponsoredUserLogins.contains(user.getLogin)
