@@ -7,11 +7,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import play.api.libs.ws.WS._
 import play.api.libs.ws.WS
-import play.api.libs.json.{JsString, JsUndefined, JsSuccess, Json}
+import play.api.libs.json._
 import org.kohsuke.github.{GitHub, GHIssueState}
 import scala.util.matching.Regex
 import play.api.libs.oauth.{OAuth, ServiceInfo, ConsumerKey}
 import java.net.URLEncoder
+import play.api.libs.json.JsSuccess
+import play.api.libs.json.JsString
+import scala.Some
 
 
 object Application extends Controller {
@@ -39,31 +42,35 @@ object Application extends Controller {
     Ok(views.html.index())
   }
 
-  def signin = Action {
-    val githubUrl = GithubAuthUri.uri
-    Redirect(githubUrl)
+  def login = Action {
+    import GithubAppConfig._
+    val ghAuthUrl = s"${authUrl}?client_id=${clientId}&client_secret=${clientSecret}&scope=${scope}"
+    Redirect(ghAuthUrl)
   }
 
 
-  def callback(code: String, state: String) = Action.async {
+  def oauthCallback(code: String) = Action.async {
+    import GithubAppConfig._
+    val resFT = WS.url(accessTokenUrl)
+                  .withQueryString(("code", code),("client_id", clientId),("client_secret", clientSecret))
+                  .withHeaders(("Accept", "application/json"))
+                  .post("")
 
-    val githubUrl = new GithubAccessTokenUri(code, state).uri
 
-    WS.url(githubUrl).withHeaders(("Accept", "application/json")).post("").map { res =>
-      Json.parse(res.body) \ "access_token" match {
-        case JsString(accessCode) => Redirect("/home").withSession("userId" -> accessCode)
-        case _ => {
-          Logger.error("couldn't parse the access token from the response")
-          //todo - send a message back to user
-          Redirect("/")
+      resFT.map{ res =>
+        res.json \ "access_token" match {
+          case JsString(accessCode) => Redirect("/choose-your-org").withSession("userId" -> accessCode)
+          case _ => Redirect("/")
         }
-      }
     }
   }
 
-  def home = Action { req =>
+//rename this endpoint
+  def chooseYourOrg = Action { req =>
     req.session.get("userId") match {
-      case Some(accessToken) => Ok(views.html.home())
+      case Some(accessToken) => {
+        Ok(views.html.orgs())
+      }
       case None => Ok(views.html.index())
     }
   }
