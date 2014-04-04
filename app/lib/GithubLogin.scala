@@ -9,7 +9,7 @@ object GithubAppConfig {
 
   val clientId = config.getString("securesocial.github.clientId").getOrElse("blah")
   val clientSecret = config.getString("securesocial.github.clientSecret").getOrElse("blah")
-  val scope = "read:org,write:org"
+  val scope = "write:org,repo"
   val authUrl = "https://github.com/login/oauth/authorize"
   val accessTokenUrl = "https://github.com/login/oauth/access_token"
 

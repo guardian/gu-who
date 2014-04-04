@@ -2,11 +2,10 @@ package controllers
 
 import play.api.mvc._
 import lib._
-import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import play.api.libs.ws.WS
-import org.kohsuke.github.{GitHub, GHIssueState}
+import org.kohsuke.github.GitHub
 import play.api.libs.json.JsString
 import scala.Some
 import collection.convert.wrapAsScala._
@@ -58,12 +57,12 @@ object Application extends Controller {
     }
   }
 
-  def chooseYourOrg = Action { req =>
+  def chooseYourOrg = Action { implicit req =>
     req.session.get("userId") match {
       case Some(accessToken) => {
         val conn = GitHub.connectUsingOAuth(accessToken)
         val orgs = conn.getMyOrganizations().keySet().toList
-        Ok(views.html.orgs(orgs))
+        Ok(views.html.orgs(orgs, accessToken))
       }
       case None => Ok(views.html.index())
     }
