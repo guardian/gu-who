@@ -3,6 +3,7 @@ name := "gu-who"
 version := "1.0-SNAPSHOT"
 
 libraryDependencies ++= Seq(
+  filters,
   "com.madgag" % "github-api" % "1.50.0.1",
   "com.github.nscala-time" %% "nscala-time" % "0.8.0",
   "com.squareup.okhttp" % "okhttp" % "1.5.3",
