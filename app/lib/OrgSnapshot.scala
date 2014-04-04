@@ -31,8 +31,8 @@ object OrgSnapshot {
       )
     }
 
-    val botUsersF = future {
-      org.botsTeam.getMembers.toSet
+    val botUsersF: Future[Set[GHUser]] = future {
+      org.botsTeamOpt.toSeq.flatMap(_.getMembers.toSeq).toSet
     } andThen { case us => Logger.info(s"bots team count: ${us.map(_.size)}") }
 
     val twoFactorAuthDisabledUsersF = future {

@@ -19,9 +19,13 @@ object Implicits {
 
     lazy val peopleRepo = org.getRepository("people")
 
-    lazy val allTeam = org.getTeams()("all")
+    lazy val teamsByName: Map[String, GHTeam] = org.getTeams().toMap
 
-    lazy val botsTeam = org.getTeams()("bots")
+    lazy val allTeamOpt = teamsByName.get("all")
+
+    lazy val allTeam =  allTeamOpt.getOrElse(throw new IllegalStateException("Missing 'all' team - GU-Who needs the 'all' team to operate"))
+
+    lazy val botsTeamOpt = teamsByName.get("bots")
 
     def testMembership(user: GHUser): Boolean = {
       if (user.isMemberOf(allTeam)) true else {
