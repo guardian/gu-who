@@ -18,7 +18,7 @@ object OrgSnapshot {
     val conn = auditDef.conn()
 
     val usersF = future {
-      org.getMembers.map { u => conn.getUser(u.getLogin) }.toSet
+      org.listMembers.map { u => conn.getUser(u.getLogin) }.toSet
     } flatMap {
       Future.traverse(_)(u => future { conn.getUser(u.getLogin) })
     } andThen { case us => Logger.info(s"User count: ${us.map(_.size)}") }
