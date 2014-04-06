@@ -1,0 +1,17 @@
+@(content: Html)
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GU-WHO</title>
+    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/twitter-bootstrap/css/bootstrap.min.css")">
+    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+</head>
+<body>
+    <nav class="navbar navbar-inverse" role="navigation">
+        <a class="navbar-brand" href="#">GU-Who?</a>
+    </nav>
+    <div class="body container">
+        @content
+    </div>
+</body>
+</html>
