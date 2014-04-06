@@ -32,7 +32,7 @@ object Application extends Controller {
   }
 
   def index = Action {
-    Ok(views.html.index())
+    Ok(views.html.userPages.index())
   }
 
   def login = Action {
@@ -62,9 +62,9 @@ object Application extends Controller {
       case Some(accessToken) => {
         val conn = GitHub.connectUsingOAuth(accessToken)
         val orgs = conn.getMyOrganizations().keySet().toList
-        Ok(views.html.orgs(orgs, accessToken))
+        Ok(views.html.userPages.orgs(orgs, accessToken))
       }
-      case None => Ok(views.html.index())
+      case None => Ok(views.html.userPages.index())
     }
   }
 }

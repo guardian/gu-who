@@ -4,6 +4,7 @@ import org.kohsuke.github.{GHIssue, GHUser, GHOrganization}
 import Implicits._
 import collection.convert.wrapAsScala._
 import play.api.Logger
+import views.html._
 
 case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirements: Set[AccountRequirement], problems: Set[AccountRequirement]) {
 
@@ -16,7 +17,7 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
       Logger.info(s"Creating issue for ${user.getLogin} $problems")
 
       val title = s"@${user.getLogin}: ${org.displayName} asks you to fix your GitHub account!"
-      val description = views.html.issue(user, org, problems).body
+      val description = views.html.ghIssues.issue(user, org, problems).body
 
       val issue = org.peopleRepo.createIssue(title)
       for (p <- problems) { issue.label(p.issueLabel) }
@@ -32,7 +33,7 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
 
     stateUpdate match {
       case UserHasLeftOrg =>
-        issue.comment(views.html.userHasLeftOrg(org, user).body)
+        issue.comment(views.html.ghIssues.userHasLeftOrg(org, user).body)
       case update: MemberUserUpdate =>
         if (update.orgMembershipWillBeConcealed) {
           org.conceal(user)
@@ -45,7 +46,7 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
         }
 
         if (update.worthyOfComment) {
-          issue.comment(views.html.memberUserUpdate(org, update).body)
+          issue.comment(views.html.ghIssues.memberUserUpdate(org, update).body)
         }
     }
 
