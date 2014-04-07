@@ -1,3 +1,4 @@
+@(ghAuthUrl: String)
 @main {
     <div class="row">
         <div class="col-md-8">
@@ -19,9 +20,7 @@
         <div class="col-md-4">
             <h3>Getting started</h3>
             <p>To choose your organisation to audit, login with your github account</p>
-            <form action="/login">
-                <button class="btn-primary">Log in</button>
-            </form>
+                <a href="@ghAuthUrl"><button class="btn-primary">Log in</button></a>
         </div>
     </div>
 }
