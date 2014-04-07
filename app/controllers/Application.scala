@@ -9,6 +9,9 @@ import org.kohsuke.github.GitHub
 import play.api.libs.json.JsString
 import scala.Some
 import collection.convert.wrapAsScala._
+import lib.GithubAppConfig._
+import play.api.libs.json.JsString
+import scala.Some
 
 object Application extends Controller {
 
@@ -31,16 +34,11 @@ object Application extends Controller {
     } else future { NotAcceptable }
   }
 
+  import GithubAppConfig._
+  val ghAuthUrl = s"${authUrl}?client_id=${clientId}&scope=${scope}"
   def index = Action {
-    Ok(views.html.userPages.index())
+    Ok(views.html.userPages.index(ghAuthUrl))
   }
-
-  def login = Action {
-    import GithubAppConfig._
-    val ghAuthUrl = s"${authUrl}?client_id=${clientId}&client_secret=${clientSecret}&scope=${scope}"
-    Redirect(ghAuthUrl)
-  }
-
 
   def oauthCallback(code: String) = Action.async {
     import GithubAppConfig._
@@ -64,7 +62,7 @@ object Application extends Controller {
         val orgs = conn.getMyOrganizations().keySet().toList
         Ok(views.html.userPages.orgs(orgs, accessToken))
       }
-      case None => Ok(views.html.userPages.index())
+      case None => Ok(views.html.userPages.index(ghAuthUrl))
     }
   }
 }

@@ -4,7 +4,6 @@
 
 POST /audit/:org                controllers.Application.audit(org: String, apiKey: String)
 GET  /                          controllers.Application.index()
-GET  /login                     controllers.Application.login()
 GET  /oauth/callback            controllers.Application.oauthCallback(code: String)
 GET  /choose-your-org           controllers.Application.chooseYourOrg()
 
