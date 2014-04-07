@@ -1,13 +1,23 @@
-@(orgs: List[String], accessToken: String)(implicit req: Request[AnyContent])
+@(orgs: List[org.kohsuke.github.GHOrganization], accessToken: String)(implicit req: Request[AnyContent])
 @import helper._
 
 @main {
-    <h3>Audit your organisation</h3>
-    @for(org <- orgs) {
-        @form(routes.Application.audit(org, accessToken)) {
-            @CSRF.formField
-            <button class="gh-org btn-primary">@org</button>
-        }
-    }
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <h3>Audit your organisation</h3>
+            @for(org <- orgs) {
+                @form(routes.Application.audit(org.getName(), accessToken)) {
+                    @CSRF.formField
+                    <div class="gh-org">
+                        <img src="@org.getAvatarUrl()" height="60px">
+                        <button class="btn btn-xs btn-primary gh-org-btn" value="submit">@Option(org.getName()).filter(_.nonEmpty).getOrElse(org.getLogin())</button>
+
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
 
 }
