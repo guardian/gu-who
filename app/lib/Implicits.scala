@@ -58,5 +58,7 @@ object Implicits {
 
     lazy val createdAt = dateTimeFormatter.parseDateTime(person.getCreatedAt)
 
+    lazy val displayName = Option(person.getName).filter(_.nonEmpty).getOrElse(s"@${person.getLogin}")
+
   }
 }
