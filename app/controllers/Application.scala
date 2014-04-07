@@ -59,7 +59,8 @@ object Application extends Controller {
       case Some(accessToken) => {
         val conn = GitHub.connectUsingOAuth(accessToken)
         val orgs = conn.getMyOrganizations().values().toList
-        Ok(views.html.userPages.orgs(orgs, accessToken))
+        val user = conn.getMyself
+        Ok(views.html.userPages.orgs(orgs, user, accessToken))
       }
       case None => Ok(views.html.userPages.index(ghAuthUrl))
     }
