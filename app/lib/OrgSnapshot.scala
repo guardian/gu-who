@@ -9,6 +9,7 @@ import scalax.file._
 import scalax.file.ImplicitConversions._
 import play.api.Logger
 import Implicits._
+import scala.util.{Failure, Success, Try}
 
 object OrgSnapshot {
   
@@ -18,7 +19,7 @@ object OrgSnapshot {
     val conn = auditDef.conn()
 
     val usersF = future {
-      org.getMembers.map { u => conn.getUser(u.getLogin) }.toSet
+      org.listMembers.map { u => conn.getUser(u.getLogin) }.toSet
     } flatMap {
       Future.traverse(_)(u => future { conn.getUser(u.getLogin) })
     } andThen { case us => Logger.info(s"User count: ${us.map(_.size)}") }
@@ -31,8 +32,8 @@ object OrgSnapshot {
       )
     }
 
-    val botUsersF = future {
-      org.botsTeam.getMembers.toSet
+    val botUsersF: Future[Set[GHUser]] = future {
+      org.botsTeamOpt.toSeq.flatMap(_.getMembers.toSeq).toSet
     } andThen { case us => Logger.info(s"bots team count: ${us.map(_.size)}") }
 
     val twoFactorAuthDisabledUsersF = future {
@@ -46,7 +47,7 @@ object OrgSnapshot {
     for {
       users <- usersF
       sponsoredUserLogins <- sponsoredUserLoginsF
-      twoFactorAuthDisabledUsers <- twoFactorAuthDisabledUsersF
+      twoFactorAuthDisabledUsers <- twoFactorAuthDisabledUsersF.trying
       openIssues <- openIssuesF
       botUsers <- botUsersF
     } yield OrgSnapshot(org, users, botUsers, sponsoredUserLogins, twoFactorAuthDisabledUsers, openIssues)
@@ -58,16 +59,29 @@ case class OrgSnapshot(
   users: Set[GHUser],
   botUsers: Set[GHUser],
   sponsoredUserLogins: Set[String],
-  twoFactorAuthDisabledUserLogins: Set[GHUser],
+  twoFactorAuthDisabledUserLogins: Try[Set[GHUser]],
   openIssues: Set[GHIssue]
 ) {
 
+  private lazy val evaluatorsByRequirement= AccountRequirements.All.map(ar => ar -> ar.userEvaluatorFor(this)).toMap
+
+  lazy val availableRequirementEvaluators: Iterable[AccountRequirement#UserEvaluator] = evaluatorsByRequirement.collect { case (_, Success(evaluator)) => evaluator }
+
+  lazy val requirementsWithUnavailableEvaluators = evaluatorsByRequirement.collect { case (ar, Failure(t)) => ar -> t }
+
   lazy val orgUserProblemsByUser = users.map {
     user =>
-      val applicableRequirements = AccountRequirements.applicableTo(user)(this)
-      val failedRequirements = applicableRequirements.filterNot(_.isSatisfiedBy(user)(this))
-      user -> OrgUserProblems(org, user, applicableRequirements, failedRequirements)
+      val applicableAvailableEvaluators = availableRequirementEvaluators.filter(_.appliesTo(user)).toSet
+
+      user -> OrgUserProblems(
+        org,
+        user,
+        applicableRequirements = applicableAvailableEvaluators.map(_.requirement),
+        problems = applicableAvailableEvaluators.filterNot(_.isSatisfiedBy(user)).map(_.requirement)
+      )
   }.toMap
+
+  lazy val orgUserProblemStats = orgUserProblemsByUser.values.map(_.problems.size).groupBy(identity).mapValues(_.size)
 
   def updateExistingAssignedIssues() {
     for {
