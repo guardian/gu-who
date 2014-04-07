@@ -1,7 +1,12 @@
-@(ghAuthUrl: String, apiKeyForm: Form[String])(implicit req: Request[AnyContent])
+@(ghAuthUrl: String, apiKeyForm: Form[String], error: Option[String] = None)(implicit req: Request[AnyContent])
 @import helper._
 @main {
     <div class="row">
+        @if(error.isDefined) {
+            <div class="alert alert-danger">
+                <p>@error.get</p>
+            </div>
+        }
         <div class="col-md-8">
             <h2>What is Gu-Who?</h2>
             <p>Gu-Who is a script to audit members of Github Organisations. It checks the state of all the users, and raises a
@@ -22,12 +27,15 @@
             <h3>Getting started</h3>
             <p>To choose your organisation to audit, login with your github account</p>
                 <a href="@ghAuthUrl"><button class="btn btn-primary">Log in</button></a>
-            <p>Or paste in your api key</p>
+            <br>
+            <br>
+            <p>Or paste in your api key:</p>
             @helper.form(action = routes.Application.storeApiKey) {
                 @CSRF.formField
                 @helper.inputText(apiKeyForm("apiKey"), '_label -> "")
                 <button type="submit" class="btn btn-primary">Post your key</button>
             }
         </div>
+
     </div>
 }

@@ -65,7 +65,7 @@ object Application extends Controller {
 
   def storeApiKey() = Action { implicit req =>
    apiKeyForm.bindFromRequest().fold(
-     formWithErrors => Redirect("/"),
+     formWithErrors =>  Ok(views.html.userPages.index(ghAuthUrl, formWithErrors)),
      accessToken => {
        try {
          GitHub.connectUsingOAuth(accessToken)
@@ -73,7 +73,7 @@ object Application extends Controller {
        }
        catch {
          case e: IOException => {
-           Redirect("/")
+           Ok(views.html.userPages.index(ghAuthUrl, apiKeyForm, Some("there was a problem with the key you supplied")))
          }
        }
      }
@@ -88,7 +88,7 @@ object Application extends Controller {
         val user = conn.getMyself
         Ok(views.html.userPages.orgs(orgs, user, accessToken))
       }
-      case None => Ok(views.html.userPages.index(ghAuthUrl, apiKeyForm))
+      case None => Ok(views.html.userPages.index(ghAuthUrl, apiKeyForm, Some("You must be logged in to see this page")))
     }
   }
 }
