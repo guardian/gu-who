@@ -9,7 +9,6 @@ import org.kohsuke.github.GitHub
 import play.api.libs.json.JsString
 import scala.Some
 import collection.convert.wrapAsScala._
-import lib.GithubAppConfig._
 import play.api.libs.json.JsString
 import scala.Some
 
@@ -59,7 +58,7 @@ object Application extends Controller {
     req.session.get("userId") match {
       case Some(accessToken) => {
         val conn = GitHub.connectUsingOAuth(accessToken)
-        val orgs = conn.getMyOrganizations().keySet().toList
+        val orgs = conn.getMyOrganizations().values().toList
         Ok(views.html.userPages.orgs(orgs, accessToken))
       }
       case None => Ok(views.html.userPages.index(ghAuthUrl))
