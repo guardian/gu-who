@@ -2,12 +2,20 @@ package lib
 
 import org.kohsuke.github._
 import collection.convert.wrapAsScala._
-import scala.util.{Failure, Success, Try}
-import play.api.Logger
-import org.joda.time.format.ISODateTimeFormat
+import scala.util.{Success, Try}
 import com.github.nscala_time.time.Imports._
+import scala.concurrent._
+import ExecutionContext.Implicits.global
 
 object Implicits {
+  implicit class RichFuture[S](f: Future[S]) {
+    lazy val trying = {
+      val p = Promise[Try[S]]()
+      f.onComplete { case t => p.complete(Success(t)) }
+      p.future
+    }
+  }
+
   implicit class RichIssue(issue: GHIssue) {
     lazy val assignee = Option(issue.getAssignee)
 
@@ -15,11 +23,17 @@ object Implicits {
   }
 
   implicit class RichOrg(org: GHOrganization) {
+    lazy val displayName = Option(org.getName).filter(_.nonEmpty).getOrElse(s"@${org.getLogin}")
+
     lazy val peopleRepo = org.getRepository("people")
 
-    lazy val allTeam = org.getTeams()("all")
+    lazy val teamsByName: Map[String, GHTeam] = org.getTeams().toMap
 
-    lazy val botsTeam = org.getTeams()("bots")
+    lazy val allTeamOpt = teamsByName.get("all")
+
+    lazy val allTeam =  allTeamOpt.getOrElse(throw new IllegalStateException("Missing 'all' team - GU-Who needs the 'all' team to operate"))
+
+    lazy val botsTeamOpt = teamsByName.get("bots")
 
     def testMembership(user: GHUser): Boolean = {
       if (user.isMemberOf(allTeam)) true else {

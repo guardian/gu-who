@@ -6,21 +6,23 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import play.api.libs.ws.WS
 import org.kohsuke.github.GitHub
-import play.api.libs.json.JsString
-import scala.Some
 import collection.convert.wrapAsScala._
 import lib.GithubAppConfig._
 import play.api.libs.json.JsString
 import scala.Some
+import play.api.Logger
+
 
 object Application extends Controller {
 
   def audit(orgName: String, apiKey: String) = Action.async {
     val auditDef = AuditDef.safelyCreateFor(orgName, apiKey)
 
+    Logger.info(s"Asked to audit ${auditDef.orgLogin} seemLegit=${auditDef.seemsLegit}")
+
     if (auditDef.seemsLegit) {
       for (orgSnapshot <- OrgSnapshot(auditDef)) yield {
-
+        Logger.info(s"availableRequirementEvaluators=${orgSnapshot.availableRequirementEvaluators} ${orgSnapshot.orgUserProblemStats}")
         orgSnapshot.createIssuesForNewProblemUsers()
 
         orgSnapshot.updateExistingAssignedIssues()
