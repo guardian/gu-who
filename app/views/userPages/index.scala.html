@@ -1,4 +1,5 @@
-@(ghAuthUrl: String)
+@(ghAuthUrl: String, apiKeyForm: Form[String])(implicit req: Request[AnyContent])
+@import helper._
 @main {
     <div class="row">
         <div class="col-md-8">
@@ -20,7 +21,13 @@
         <div class="col-md-4">
             <h3>Getting started</h3>
             <p>To choose your organisation to audit, login with your github account</p>
-                <a href="@ghAuthUrl"><button class="btn-primary">Log in</button></a>
+                <a href="@ghAuthUrl"><button class="btn btn-primary">Log in</button></a>
+            <p>Or paste in your api key</p>
+            @helper.form(action = routes.Application.storeApiKey) {
+                @CSRF.formField
+                @helper.inputText(apiKeyForm("apiKey"), '_label -> "")
+                <button type="submit" class="btn btn-primary">Post your key</button>
+            }
         </div>
     </div>
 }

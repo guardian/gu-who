@@ -11,6 +11,13 @@ import scala.Some
 import collection.convert.wrapAsScala._
 import play.api.libs.json.JsString
 import scala.Some
+import play.api.Logger
+import play.api.data.Forms._
+import play.api.data.format.Formats._
+import play.api.data.Form
+import scala.util.Try
+import java.io.IOException
+
 
 object Application extends Controller {
 
@@ -35,9 +42,11 @@ object Application extends Controller {
 
   import GithubAppConfig._
   val ghAuthUrl = s"${authUrl}?client_id=${clientId}&scope=${scope}"
-  def index = Action {
-    Ok(views.html.userPages.index(ghAuthUrl))
+  def index = Action { implicit req =>
+    Ok(views.html.userPages.index(ghAuthUrl, apiKeyForm))
   }
+
+  val apiKeyForm = Form("apiKey" -> of[String])
 
   def oauthCallback(code: String) = Action.async {
     import GithubAppConfig._
@@ -54,6 +63,23 @@ object Application extends Controller {
     }
   }
 
+  def storeApiKey() = Action { implicit req =>
+   apiKeyForm.bindFromRequest().fold(
+     formWithErrors => Redirect("/"),
+     accessToken => {
+       try {
+         GitHub.connectUsingOAuth(accessToken)
+         Redirect("/choose-your-org").withSession("userId" -> accessToken)
+       }
+       catch {
+         case e: IOException => {
+           Redirect("/")
+         }
+       }
+     }
+   )
+  }
+
   def chooseYourOrg = Action { implicit req =>
     req.session.get("userId") match {
       case Some(accessToken) => {
@@ -62,7 +88,7 @@ object Application extends Controller {
         val user = conn.getMyself
         Ok(views.html.userPages.orgs(orgs, user, accessToken))
       }
-      case None => Ok(views.html.userPages.index(ghAuthUrl))
+      case None => Ok(views.html.userPages.index(ghAuthUrl, apiKeyForm))
     }
   }
 }
