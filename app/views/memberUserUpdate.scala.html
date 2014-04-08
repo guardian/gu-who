@@ -1,12 +1,14 @@
-@(organ: org.kohsuke.github.GHOrganization, update: lib.MemberUserUpdate)
+@(update: lib.MemberUserUpdate)(implicit organ: org.kohsuke.github.GHOrganization)
+
+@if(update.userShouldReceiveFinalWarning) {
+**WARNING:** If requirements for this account aren't met, it will be removed from @(organ.getName)'s organisation on @(views.Dates.DateFormatter.print(update.terminationDate)).
+}
 
 @if(update.fixedRequirements.nonEmpty) {
 Thanks for fixing those requirements (ie @update.fixedRequirements.map(_.issueLabel).mkString(", ")).} @if(update.issueCanBeClosed) { Closing this issue, you're good to go! :sparkles:
 } else { These are the remaining requirements you need to address:
 
-@for(requirement<-update.currentProblems) {
-* @requirement.fixSummary(organ)
-}
+@problemList(update.currentProblems)
 
 @if(update.orgMembershipWillBeConcealed) {
 We've made your membership of @(organ.getName)'s organisation on GitHub non-public, to make it less likely an attacker can find it.
