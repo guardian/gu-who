@@ -3,11 +3,13 @@ package lib
 import org.joda.time.format.PeriodFormatterBuilder
 import com.github.nscala_time.time.Imports._
 import org.kohsuke.github.GHIssue
-
+import TerminationSchedule._
 
 object TerminationSchedule {
 
-  val Relaxed = TerminationSchedule(4.weeks + 1.day + 6.hours, 1.week)
+  val EarliestTerminationDate = new DateTime(2014, 4, 9, 10, 0)
+
+  val Relaxed = TerminationSchedule(4.weeks, 1.week)
 
   val LabelPeriodFormatter = new PeriodFormatterBuilder()
     .appendYears().appendSuffix("Y")
@@ -21,7 +23,9 @@ object TerminationSchedule {
 }
 
 case class TerminationSchedule(tolerancePeriod: Period, finalWarningPeriod: Period) {
-  lazy val warnedLabel: String = "Warned"+TerminationSchedule.LabelPeriodFormatter.print(finalWarningPeriod)
+  lazy val warnedLabel: String = "Warned"+LabelPeriodFormatter.print(finalWarningPeriod)
 
-  def terminationDateFor(issue: GHIssue) = issue.getCreatedAt.getTime.toDateTime + tolerancePeriod
+  def terminationDateFor(issue: GHIssue) =
+    Seq(EarliestTerminationDate, issue.getCreatedAt.getTime.toDateTime + tolerancePeriod).max
+
 }
