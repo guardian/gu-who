@@ -1,0 +1,5 @@
+@(requirements: Traversable[lib.AccountRequirement])(implicit organ: org.kohsuke.github.GHOrganization)
+
+@for(requirement<-requirements) {
+* @requirement.fixSummary(organ)
+}
