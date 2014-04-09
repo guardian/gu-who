@@ -1,0 +1,11 @@
+.gh-org{
+    margin-top: 20px;
+    margin-bottom: 5px;
+    position: relative;
+}
+
+.gh-org-btn {
+    position: absolute;
+    bottom: 0px;
+    margin-left: 5px;
+}

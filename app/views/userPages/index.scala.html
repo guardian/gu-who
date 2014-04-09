@@ -1,0 +1,26 @@
+@(ghAuthUrl: String)
+@main {
+    <div class="row">
+        <div class="col-md-8">
+            <h2>What is Gu-Who?</h2>
+            <p>Gu-Who is a script to audit members of Github Organisations. It checks the state of all the users, and raises a
+                Github issue for anyone who does not meet one of the user requirements.
+            </p>
+            <h3>User requirements</h3>
+            <ul>
+                <li>Enabled two factor authentication</li>
+                <li>Sponsored</li>
+                <li>Has filled out the fullname field on their account</li>
+            </ul>
+            <h3>Pre-requisites</h3>
+            <ul>
+                <li>Need to create a repository called 'People' and add all members of the org</li>
+            </ul>
+        </div>
+        <div class="col-md-4">
+            <h3>Getting started</h3>
+            <p>To choose your organisation to audit, login with your github account</p>
+                <a href="@ghAuthUrl"><button class="btn-primary">Log in</button></a>
+        </div>
+    </div>
+}

@@ -1,0 +1,27 @@
+@(orgs: List[org.kohsuke.github.GHOrganization], user: org.kohsuke.github.GHUser, accessToken: String)(implicit req: Request[AnyContent])
+@import lib.Implicits._
+@import helper._
+
+@main {
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <h3>Audit your organisation</h3>
+            <p class="alert-warning">Running GU-Who as @user.displayName.
+             This will create github issues by this user on the people repo against members of the chosen organisation.
+            </p>
+            @for(org <- orgs) {
+                @form(routes.Application.audit(org.getLogin, accessToken)) {
+                    @CSRF.formField
+                    <div class="gh-org">
+                        <img src="@org.getAvatarUrl()" height="60px">
+                        <button class="btn btn-xs btn-primary gh-org-btn" value="submit">@org.displayName</button>
+
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+
+}
