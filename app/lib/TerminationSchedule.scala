@@ -7,7 +7,7 @@ import TerminationSchedule._
 
 object TerminationSchedule {
 
-  val EarliestTerminationDate = new DateTime(2014, 4, 9, 10, 0)
+  val EarliestTerminationDate = new DateTime(2014, 4, 9, 9, 0, DateTimeZone.UTC)
 
   val Relaxed = TerminationSchedule(4.weeks, 1.week)
 
