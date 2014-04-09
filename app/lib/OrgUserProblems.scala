@@ -45,7 +45,7 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
         }
 
         if (update.worthyOfComment) {
-          issue.comment(views.html.ghIssues.memberUserUpdate(org, update).body)
+          issue.comment(views.html.ghIssues.memberUserUpdate(update)(org).body)
         }
 
         val oldLabelSet = issue.labelNames.toSet
