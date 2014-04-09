@@ -1,5 +1,6 @@
 @(ghAuthUrl: String, apiKeyForm: Form[String], error: Option[String] = None)(implicit req: Request[AnyContent])
 @import helper._
+@import helper.twitterBootstrap._
 @main {
     <div class="row">
         @if(error.isDefined) {
@@ -30,10 +31,13 @@
             <br>
             <br>
             <p>Or paste in your api key:</p>
-            @helper.form(action = routes.Application.storeApiKey) {
+            @helper.form(action = routes.Application.storeApiKey, 'class -> "form") {
                 @CSRF.formField
-                @helper.inputText(apiKeyForm("apiKey"), '_label -> "")
-                <button type="submit" class="btn btn-primary">Post your key</button>
+                    <div class="form-group">
+                        <input type="text" id="apiKey" name="apiKey" value="" size="50" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Post your key</button>
+
             }
         </div>
 
