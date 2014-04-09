@@ -4,42 +4,41 @@
 @main {
     <div class="row">
         @if(error.isDefined) {
-            <div class="alert alert-danger">
-                <p>@error.get</p>
-            </div>
-        }
-
-        <div class="col-md-8">
-            <h2>What is Gu-Who?</h2>
-            <p>Gu-Who is a script to audit members of Github Organisations. It checks the state of all the users, and raises a
-                Github issue for anyone who does not meet one of the user requirements.
-            </p>
-            <h3>User requirements</h3>
-            <ul>
-                <li>Enabled two factor authentication</li>
-                <li>Sponsored</li>
-                <li>Has filled out the fullname field on their account</li>
-            </ul>
-            <h3>Pre-requisites</h3>
-            <ul>
-                <li>Need to create a repository called 'People' and add all members of the org</li>
-            </ul>
+        <div class="alert alert-danger">
+            <p>@error.get</p>
         </div>
-        <div class="col-md-4">
+        }
+        <div class="col-md-6">
+            <h2>Audit Your Github Orgs</h2>
             <h3>Getting started</h3>
-            <p>To choose your organisation to audit, login with your github account</p>
-                  <a href="@ghAuthUrl"><button class="btn btn-primary">Log in</button></a>
+            <p>To choose your organisation to audit, login with your github account:</p>
+            <a href="@ghAuthUrl"><button class="btn btn-primary">Log in via Github</button></a>
             <br>
             <br>
             <p>Or paste in your api key:</p>
             @helper.form(action = routes.Application.storeApiKey, 'class -> "form") {
-                @CSRF.formField
-                    <div class="form-group">
-                        <input type="text" id="apiKey" name="apiKey" value="" size="50" class="form-control">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Post your key</button>
-
+            @CSRF.formField
+            <div class="form-group">
+                <input type="text" id="apiKey" name="apiKey" value="" size="50" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Post your key</button>
             }
         </div>
+        <div class="col-md-6">
+            <h3>What is GU-Who?</h3>
+            <p>GU-Who is a script to audit public members of Github Organisations. It checks the state of all the users, and raises a
+                Github issue for anyone who does not meet one or more of the following requirements:
+            </p>
+            <ul>
+                <li>Enabled two factor authentication</li>
+                <li>Sponsorship (an entry in users.txt file)</li>
+                <li>Has filled out the fullname field on their account</li>
+            </ul>
+            <h3>Pre-requisites</h3>
+                <p>Your org must have a repo called 'People'. For security purposes, we recommend this to be private
+                    as all the (potentially vulnerable) members of your org will be visible on this repo.</p>
+        </div>
+
+
     </div>
 }
