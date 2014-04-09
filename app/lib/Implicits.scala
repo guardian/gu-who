@@ -6,6 +6,7 @@ import scala.util.{Success, Try}
 import com.github.nscala_time.time.Imports._
 import scala.concurrent._
 import ExecutionContext.Implicits.global
+import org.kohsuke.github.GHOrganization.Permission
 
 object Implicits {
   implicit class RichFuture[S](f: Future[S]) {
@@ -31,7 +32,7 @@ object Implicits {
 
     lazy val allTeamOpt = teamsByName.get("all")
 
-    lazy val allTeam =  allTeamOpt.getOrElse(throw new IllegalStateException("Missing 'all' team - GU-Who needs the 'all' team to operate"))
+    lazy val allTeam =  allTeamOpt.getOrElse(createAllTeam)
 
     lazy val botsTeamOpt = teamsByName.get("bots")
 
@@ -41,6 +42,12 @@ object Implicits {
         if (orgMember) { allTeam.add(user) }
         orgMember
       }
+    }
+
+    def createAllTeam: GHTeam = {
+      val team = org.createTeam("all", Permission.PULL)
+      team.add(peopleRepo)
+      team
     }
   }
 
