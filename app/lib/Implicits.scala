@@ -23,7 +23,7 @@ object Implicits {
   }
 
   implicit class RichOrg(org: GHOrganization) {
-    lazy val displayName = Option(org.getName).getOrElse(s"@${org.getLogin}")
+    lazy val displayName = Option(org.getName).filter(_.nonEmpty).getOrElse(s"@${org.getLogin}")
 
     lazy val peopleRepo = org.getRepository("people")
 

@@ -6,8 +6,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import play.api.libs.ws.WS
 import org.kohsuke.github.GitHub
-import play.api.libs.json.JsString
-import scala.Some
 import collection.convert.wrapAsScala._
 import play.api.libs.json.JsString
 import scala.Some
@@ -15,7 +13,6 @@ import play.api.Logger
 import play.api.data.Forms._
 import play.api.data.format.Formats._
 import play.api.data.Form
-import scala.util.Try
 import java.io.IOException
 
 
@@ -42,6 +39,7 @@ object Application extends Controller {
 
   import GithubAppConfig._
   val ghAuthUrl = s"${authUrl}?client_id=${clientId}&scope=${scope}"
+
   def index = Action { implicit req =>
     Ok(views.html.userPages.index(ghAuthUrl, apiKeyForm))
   }

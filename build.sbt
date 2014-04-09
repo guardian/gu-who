@@ -4,7 +4,7 @@ version := "1.0-SNAPSHOT"
 
 libraryDependencies ++= Seq(
   filters,
-  "com.madgag" % "github-api" % "1.50.0.1",
+  "com.madgag" % "github-api" % "1.50.0.2",
   "com.github.nscala-time" %% "nscala-time" % "0.8.0",
   "com.squareup.okhttp" % "okhttp" % "1.5.3",
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2",

@@ -31,9 +31,9 @@ Enforced Requirements
 These requirements are intended to make it easier to manage the user
 accounts and work out if they should be in your organisation or not:
 
-* Two-Factor-Auth enabled
-* A full name set in the user GitHub Profile
-* Sponsor: each GitHub username should be in https://github.com/guardian/people/blob/master/users.txt - added by Pull Request by any senior member of the organisation (who, in effect, acts as the 'sponsor' for the user for being in the GitHub Org). The current GitHub admin interface doesn't give any long-term audit trail on how a user came to join an Org, so this file serves that purpose.
+* **Two-Factor-Auth** enabled
+* A **Full Name** set in the user GitHub Profile
+* **Sponsor**: each GitHub username should be in https://github.com/guardian/people/blob/master/users.txt - added by Pull Request by any senior member of the organisation (who, in effect, acts as the 'sponsor' for the user for being in the GitHub Org). The current GitHub admin interface doesn't give any long-term audit trail on how a user came to join an Org, so this file serves that purpose.
 
 
 Actions taken by the gu-who bot...
@@ -41,4 +41,16 @@ Actions taken by the gu-who bot...
 
 * Opens a GitHub issue against each user that doesn't pass the requirements
 * Conceals organisation membership for users which don't comply with the requirements
-* TODO: After a grace period, removes insecure users from the org
+* After a grace period, removes insecure users from the org
+
+
+What's your logo?
+-----------------
+
+Well, obviously, it would be the ridiculously suitable 
+**[Riddlocat](https://octodex.github.com/images/riddlocat.png)** by [@cameronmcefee](https://github.com/cameronmcefee), but we can't use
+it for legal reasons laid out so eloquently by the Riddlocat _himself_
+on the [GitHub Octodex FAQ](https://octodex.github.com/faq.html).
+
+You'll just have to imagine the logo there.
+
