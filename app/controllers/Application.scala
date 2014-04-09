@@ -31,8 +31,11 @@ object Application extends Controller {
         orgSnapshot.updateExistingAssignedIssues()
 
         orgSnapshot.closeUnassignedIssues()
-        
-        Ok
+
+        val conn = GitHub.connectUsingOAuth(apiKey)
+        val user = conn.getMyself
+
+        Ok(views.html.userPages.results(orgName, user.getLogin))
       }
     } else future { NotAcceptable }
   }
@@ -53,11 +56,11 @@ object Application extends Controller {
                   .withHeaders(("Accept", "application/json"))
                   .post("")
 
-      resFT.map{ res =>
-        res.json \ "access_token" match {
-          case JsString(accessCode) => Redirect("/choose-your-org").withSession("userId" -> accessCode)
-          case _ => Redirect("/")
-        }
+    resFT.map{ res =>
+      res.json \ "access_token" match {
+        case JsString(accessCode) => Redirect("/choose-your-org").withSession("userId" -> accessCode)
+        case _ => Redirect("/")
+      }
     }
   }
 

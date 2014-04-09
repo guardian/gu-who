@@ -14,3 +14,4 @@ object GithubAppConfig {
   val accessTokenUrl = "https://github.com/login/oauth/access_token"
 
 }
+
