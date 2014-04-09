@@ -18,7 +18,7 @@ import java.io.IOException
 
 object Application extends Controller {
 
-  def audit(orgName: String, apiKey: String) = Action.async {
+  def audit(orgName: String, apiKey: String) = Action.async { implicit req =>
     val auditDef = AuditDef.safelyCreateFor(orgName, apiKey)
 
     Logger.info(s"Asked to audit ${auditDef.orgLogin} seemLegit=${auditDef.seemsLegit}")
@@ -32,10 +32,9 @@ object Application extends Controller {
 
         orgSnapshot.closeUnassignedIssues()
 
-        val conn = GitHub.connectUsingOAuth(apiKey)
-        val user = conn.getMyself
+        val problemUserCount = orgSnapshot.orgUserProblemsByUser.keySet.size
 
-        Ok(views.html.userPages.results(orgName, user.getLogin))
+        Ok(views.html.userPages.results(auditDef, problemUserCount))
       }
     } else future { NotAcceptable }
   }

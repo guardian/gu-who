@@ -1,12 +1,19 @@
-@(orgName: String, botName: String)
+@(auditDef: lib.AuditDef, problemUserCount: Int)(implicit req: Request[AnyContent])
 @main {
 
     <div class="row">
         <div class="col-md-6">
-            <h2>Your audit has been started</h2>
+            <h2>Your audit is complete</h2>
+            <p>We found @problemUserCount users that did not meet the requirements.</p>
             <p>Our script has opened by these
-                <a href="https://github.com/@orgName/people/issues/created_by/@botName?state=open">issues</a>
+                <a href="https://github.com/@auditDef.org.getLogin/people/issues/created_by/@auditDef.bot.getLogin?state=open">issues</a>
                 by you
+            </p>
+            <p>To update the state of the issues, you can rerun this script by running the below on the command line:</p>
+            <code>curl -X POST http://@req.host/audit/@auditDef.org.getLogin?apiKey={{ YOUR_GITHUB_API_KEY }}</code>
+            <p>Your github api key needs to have the scopes write:org and repo.</p>
+            <p> <a href="https://help.github.com/articles/creating-an-access-token-for-command-line-use">This</a>
+            article explains how to create an api key.
             </p>
         </div>
     </div>
