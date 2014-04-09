@@ -5,10 +5,11 @@ import Implicits._
 import collection.convert.wrapAsScala._
 import play.api.Logger
 import views.html._
+import com.github.nscala_time.time.Imports._
 
 case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirements: Set[AccountRequirement], problems: Set[AccountRequirement]) {
 
-  lazy val applicableLabels = applicableRequirements.map(_.issueLabel)
+  lazy val applicableLabels: Set[String] = applicableRequirements.map(_.issueLabel)
 
   def createIssue() {
     require(problems.nonEmpty)
@@ -34,20 +35,23 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
     stateUpdate match {
       case UserHasLeftOrg =>
         issue.comment(views.html.ghIssues.userHasLeftOrg(org, user).body)
+      case membershipTermination: MembershipTermination =>
+        issue.comment(views.html.membershipTermination(user, membershipTermination)(org).body)
+        org.remove(user)
       case update: MemberUserUpdate =>
         if (update.orgMembershipWillBeConcealed) {
           org.conceal(user)
         }
 
-        if (update.isChange) {
-          val unassociatedLabels = issue.labelNames.filterNot(applicableLabels)
-          val newLabelSet = problems.map(_.issueLabel) ++ unassociatedLabels
-          issue.setLabels(newLabelSet.toSeq: _*)
+        if (update.worthyOfComment) {
+          issue.comment(views.html.ghIssues.memberUserUpdate(update)(org).body)
         }
 
-        if (update.worthyOfComment) {
-          issue.comment(views.html.ghIssues.memberUserUpdate(org, update).body)
-        }
+        val oldLabelSet = issue.labelNames.toSet
+        val unassociatedLabels = oldLabelSet -- applicableLabels
+        val newLabelSet = problems.map(_.issueLabel) ++ unassociatedLabels ++ update.terminationWarning.map(_.warnedLabel)
+
+        if (newLabelSet != oldLabelSet) issue.setLabels(newLabelSet.toSeq: _*)
     }
 
     if (stateUpdate.issueCanBeClosed) {
@@ -63,9 +67,30 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
 
       val oldProblems = oldBotLabels.map(AccountRequirements.RequirementsByLabel)
 
-      val orgMembershipWillBeConcealed = problems.nonEmpty && org.hasPublicMember(user)
+      val schedule = TerminationSchedule.Relaxed
 
-      MemberUserUpdate(oldProblems, problems, orgMembershipWillBeConcealed)
+      val terminationDate = schedule.terminationDateFor(issue)
+
+      val now = DateTime.now
+
+      if (now > terminationDate) MembershipTermination(problems) else {
+
+        val userShouldBeWarned = now > (terminationDate - schedule.finalWarningPeriod)
+
+        val userHasBeenWarned = issue.getLabels.exists(_.getName == schedule.warnedLabel)
+
+        val userShouldReceiveFinalWarning = userShouldBeWarned && !userHasBeenWarned
+
+        MemberUserUpdate(
+          oldProblems,
+          problems,
+          terminationDate,
+          orgMembershipWillBeConcealed = problems.nonEmpty && org.hasPublicMember(user),
+          terminationWarning = Some(schedule).filter(_ => userShouldReceiveFinalWarning)
+        )
+      }
+
     } else UserHasLeftOrg
   }
 }
+
