@@ -11,7 +11,7 @@
              This will create github issues by this user on the people repo against members of the chosen organisation.
             </p>
             @for(org <- orgs) {
-                @form(routes.Application.audit(org.getName(), accessToken)) {
+                @form(routes.Application.audit(org.getLogin, accessToken)) {
                     @CSRF.formField
                     <div class="gh-org">
                         <img src="@org.getAvatarUrl()" height="60px">
