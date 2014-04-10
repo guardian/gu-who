@@ -9,13 +9,14 @@
         </div>
         }
         <div class="col-md-6">
-            <h2>Audit Your Github Orgs</h2>
+            <h2>Audit Your GitHub Organisation</h2>
             <h3>Getting started</h3>
-            <p>To choose your organisation to audit, login with your github account:</p>
-            <a href="@ghAuthUrl"><button class="btn btn-primary">Log in via Github</button></a>
+            <p>Either login with your GitHub account:</p>
+            <a href="@ghAuthUrl"><button class="btn btn-primary">Log in via GitHub</button></a>
             <br>
             <br>
-            <p>Or paste in your api key:</p>
+            <p>Or paste in a GitHub <a href="https://help.github.com/articles/creating-an-access-token-for-command-line-use">API key</a>
+                (scope: <code>repo</code>, <code>write:org</code>) :</p>
             @helper.form(action = routes.Application.storeApiKey, 'class -> "form") {
             @CSRF.formField
             <div class="form-group">
@@ -25,18 +26,29 @@
             }
         </div>
         <div class="col-md-6">
-            <h3>What is GU-Who?</h3>
-            <p>GU-Who is a script to audit public members of Github Organisations. It checks the state of all the users, and raises a
-                Github issue for anyone who does not meet one or more of the following requirements:
+            <h3>What is <i>gu:who?</i></h3>
+            <p><i>gu:who</i> is a bot you can use to audit the membership of your GitHub Organisation.
+                It checks the state of all the users, and raises a
+                GitHub issue for anyone who doesn't meet the basic security requirements:
             </p>
             <ul>
-                <li>Enabled two factor authentication</li>
-                <li>Sponsorship (an entry in users.txt file)</li>
-                <li>Has filled out the fullname field on their account</li>
+                <li><strong>Two-Factor-Authentication</strong> <em><a href="https://help.github.com/articles/about-two-factor-authentication">enabled</a></em></li>
+                <li>a <strong>Full Name</strong> in their <a href="https://github.com/settings/profile">GitHub profile</a>
+                    - helping you identify users you <em>can't identify by username alone</em></li>
+                <li><strong>Sponsor</strong> - a more senior member of staff adds the user to the
+                    <a href="https://github.com/gu-who-demo-org/people/blob/master/users.txt">users.txt</a> file,
+                    <em><a href="https://github.com/gu-who-demo-org/people/blame/master/users.txt">taking responsibility via git-blame</a></em>
+                    for the user being in the organisation</li>
             </ul>
-            <h3>Pre-requisites</h3>
-                <p>Your org must have a repo called 'People'. For security purposes, we recommend this to be private
-                    as all the (potentially vulnerable) members of your org will be visible on this repo.</p>
+            <h3>Prerequisites</h3>
+                <p>Your GitHub organisation must have a repo called 'people'
+                    (see <a href="https://github.com/gu-who-demo-org/people">gu-who-demo-org/people</a> for an example)
+                    where <i>gu:who</i> can have an audit trail for who's meant to be in this organisation - and a
+                    place to <a href="https://github.com/gu-who-demo-org/people/issues">open issues</a> for
+                    security-problem users.
+
+                    For security purposes, we recommend this be a 'private' repo,
+                    as all the (potentially vulnerable) members of your org will be visible in it's issues.</p>
         </div>
 
 
