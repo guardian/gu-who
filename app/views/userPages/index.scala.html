@@ -16,14 +16,14 @@
             @helper.form(action = routes.Application.storeApiKey, 'class -> "form") {
             @CSRF.formField
             <div class="input-group">
-                <input type="text" id="apiKey" name="apiKey" value="" size="40" maxlength="40" pattern="[0-9A-Fa-f]{40}" class="form-control">
+                <input type="password" id="apiKey" name="apiKey" value="" size="40" maxlength="40" pattern="[0-9A-Fa-f]{40}" class="form-control input-lg" style="font-family: monospace;">
                 <span class="input-group-btn">
-                    <button class="btn btn-primary" type="submit">Go!</button>
+                    <button class="btn btn-primary input-lg" type="submit">Go!</button>
                 </span>
             </div>
             }
             <p>or</p>
-            <a href="@ghAuthUrl"><button class="btn btn-primary">Log In via GitHub!</button></a>
+            <a href="@ghAuthUrl"><button class="btn btn-primary input-lg">Log In via GitHub!</button></a>
         </div>
     </div>
 
