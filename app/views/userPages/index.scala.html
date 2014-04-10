@@ -8,27 +8,29 @@
             <p>@error.get</p>
         </div>
         }
-        <div class="col-md-6">
+        <div class="col-md-12 text-center">
             <h2>Audit Your GitHub Organisation</h2>
-            <h3>Getting started</h3>
-            <p>Either login with your GitHub account:</p>
-            <a href="@ghAuthUrl"><button class="btn btn-primary">Log in via GitHub</button></a>
-            <br>
-            <br>
-            <p>Or paste in a GitHub <a href="https://help.github.com/articles/creating-an-access-token-for-command-line-use">API key</a>
+            <p>Paste in a GitHub <a href="https://help.github.com/articles/creating-an-access-token-for-command-line-use#creating-a-token">access token</a>
                 (scope: <code>repo</code>, <code>write:org</code>) :</p>
             @helper.form(action = routes.Application.storeApiKey, 'class -> "form") {
             @CSRF.formField
-            <div class="form-group">
-                <input type="text" id="apiKey" name="apiKey" value="" size="50" class="form-control">
+            <div class="input-group">
+                <input type="text" id="apiKey" name="apiKey" value="" size="40" maxlength="40" pattern="[0-9A-Fa-f]{40}" class="form-control">
+                <span class="input-group-btn">
+                    <button class="btn btn-primary" type="submit">Go!</button>
+                </span>
             </div>
-            <button type="submit" class="btn btn-primary">Post your key</button>
             }
+            <p>or</p>
+            <a href="@ghAuthUrl"><button class="btn btn-primary">Log In via GitHub!</button></a>
         </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-6">
             <h3>What is <i>gu:who?</i></h3>
             <p><i>gu:who</i> is an audit bot for the membership of your GitHub Organisation.
-                It checks the state of all users, and raises a
+                It checks all users in your organisation, and raises a
                 <a href="https://github.com/gu-who-demo-org/people/issues/3">GitHub issue</a>
                 for anyone who doesn't meet the basic security requirements:
             </p>
@@ -41,17 +43,17 @@
                     <em><a href="https://github.com/gu-who-demo-org/people/blame/master/users.txt">taking responsibility via git-blame</a></em>
                     for the user being in the organisation</li>
             </ul>
-            <h3>Prerequisites</h3>
-                <p>Your GitHub organisation must have a repo called 'people'
-                    (see <a href="https://github.com/gu-who-demo-org/people">gu-who-demo-org/people</a> for an example)
-                    where <i>gu:who</i> can have an audit trail for who's meant to be in this organisation - and a
-                    place to <a href="https://github.com/gu-who-demo-org/people/issues">open issues</a> for
-                    security-problem users.
-
-                    For security purposes, we recommend this be a 'private' repo,
-                    as all the (potentially vulnerable) members of your org will be visible in it's issues.</p>
         </div>
+        <div class="col-md-6">
+            <h3>Prerequisites</h3>
+            <p>Your GitHub organisation must have a repo called 'people'
+                (see <a href="https://github.com/gu-who-demo-org/people">gu-who-demo-org/people</a> for an example)
+                where <i>gu:who</i> can have an audit trail for who's meant to be in this organisation - and a
+                place to <a href="https://github.com/gu-who-demo-org/people/issues">open issues</a> for
+                security-problem users.
 
-
+                For security purposes, we recommend this be a 'private' repo,
+                as all the (potentially vulnerable) members of your org will be visible in it's issues.</p>
+        </div>
     </div>
 }
