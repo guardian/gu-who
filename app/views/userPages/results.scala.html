@@ -1,10 +1,10 @@
-@(auditDef: lib.AuditDef, problemUserCount: Int)(implicit req: Request[AnyContent])
+@(auditDef: lib.AuditDef, orgSnapsot: lib.OrgSnapshot)(implicit req: Request[AnyContent])
 @main {
 
     <div class="row">
         <div class="col-md-6">
             <h2>Your audit is complete</h2>
-            <p>We found @problemUserCount users that did not meet the requirements.</p>
+            <p>We found @orgSnapsot.usersWithProblemsCount users that did not meet the requirements.</p>
             <p>Our script has opened by these
                 <a href="https://github.com/@auditDef.org.getLogin/people/issues/created_by/@auditDef.bot.getLogin?state=open">issues</a>
                 by you

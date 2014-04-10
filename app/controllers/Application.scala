@@ -32,9 +32,7 @@ object Application extends Controller {
 
         orgSnapshot.closeUnassignedIssues()
 
-        val problemUserCount = orgSnapshot.orgUserProblemsByUser.keySet.size
-
-        Ok(views.html.userPages.results(auditDef, problemUserCount))
+        Ok(views.html.userPages.results(auditDef, orgSnapshot))
       }
     } else future { NotAcceptable }
   }
