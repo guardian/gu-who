@@ -40,7 +40,6 @@ object Implicits {
   }
 
   implicit class RichOrg(org: GHOrganization) {
-    lazy val displayName = Option(org.getName).filter(_.nonEmpty).getOrElse(s"@${org.getLogin}")
 
     lazy val peopleRepo = org.getRepository("people")
 
@@ -81,7 +80,9 @@ object Implicits {
 
     lazy val createdAt = dateTimeFormatter.parseDateTime(person.getCreatedAt)
 
-    lazy val displayName = Option(person.getName).filter(_.nonEmpty).getOrElse(s"@${person.getLogin}")
+    lazy val atLogin = s"@${person.getLogin}"
+
+    lazy val displayName = Option(person.getName).filter(_.nonEmpty).getOrElse(atLogin)
 
   }
 }
