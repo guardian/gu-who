@@ -1,19 +1,22 @@
 @(auditDef: lib.AuditDef, orgSnapsot: lib.OrgSnapshot)(implicit req: Request[AnyContent])
+@import lib.Implicits._
+
 @main {
 
     <div class="row">
         <div class="col-md-6">
             <h2>Your audit is complete</h2>
-            <p>We found @orgSnapsot.usersWithProblemsCount users that did not meet the requirements.</p>
-            <p>Our script has opened by these
-                <a href="https://github.com/@auditDef.org.getLogin/people/issues/created_by/@auditDef.bot.getLogin?state=open">issues</a>
-                by you
+            <div class="alert alert-@if(orgSnapsot.problemUsersExist) {warning} else {success}">
+            <p>There are currently <a href="https://github.com/@auditDef.org.getLogin/people/issues/created_by/@auditDef.bot.getLogin?state=open"><strong>@orgSnapsot.usersWithProblemsCount</strong> users</a>
+                in @auditDef.org.displayName's organisation that don't meet requirements.
             </p>
-            <p>To update the state of the issues, you can rerun this script by running the below on the command line:</p>
+            </div>
+            <p>You can re-run this process, and update the associated issues, by calling our endpoint directly:</p>
+
             <code>curl -X POST http://@req.host/audit/@auditDef.org.getLogin?apiKey={{ YOUR_GITHUB_API_KEY }}</code>
-            <p>Your GitHub API key needs to have the scopes <code>repo</code> and <code>write:org</code>.</p>
-            <p> <a href="https://help.github.com/articles/creating-an-access-token-for-command-line-use">This</a>
-            article explains how to create an API key.
+            
+            <p>Your <a href="https://help.github.com/articles/creating-an-access-token-for-command-line-use">GitHub API</a>
+                key needs to have the scopes <code>repo</code> and <code>write:org</code>.
             </p>
         </div>
     </div>

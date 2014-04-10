@@ -99,6 +99,8 @@ case class OrgSnapshot(
 
   lazy val usersWithProblemsCount = orgUserProblemsByUser.values.count(_.problems.size > 0)
 
+  lazy val problemUsersExist = usersWithProblemsCount > 0
+
   lazy val orgUserProblemStats = orgUserProblemsByUser.values.map(_.problems.size).groupBy(identity).mapValues(_.size)
 
   def updateExistingAssignedIssues() {
