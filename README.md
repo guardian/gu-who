@@ -18,7 +18,7 @@ it aims to ensure all users in your organisation meet some basic
 requirements, and it makes it easy to see where requirements aren't
 being met.
 
-**It does this by using _GitHub_ as it's user-interface:**
+**It does this by using _GitHub_ as its user-interface:**
 GitHub issues and simple text files stored in GitHub 'people' repo held
 under your org- no other database or spreadsheet, no Active Directory
 or LDAP.
