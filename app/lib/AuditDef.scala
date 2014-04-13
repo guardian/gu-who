@@ -72,6 +72,10 @@ case class AuditDef(orgLogin: String, apiKey: String) {
     (org, bot)
   }
 
-  lazy val seemsLegit = bot.isMemberOf(org) && org.listPublicMembers.exists(_.createdAt < DateTime.now - 3.months)
+  def ensureSeemsLegit() = {
+    require(bot.isMemberOf(org), s"Supplied bot account ${bot.atLogin} must be a member of ${org.atLogin}")
+    require(org.listPublicMembers.exists(_.createdAt < DateTime.now - 3.months),
+      s"Organisation ${org.atLogin} must have at least one *public* member whose account is over 3 months old")
+  }
 
 }

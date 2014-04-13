@@ -30,27 +30,29 @@ import play.api.data.Forms._
 import play.api.data.format.Formats._
 import play.api.data.Form
 import java.io.IOException
+import scala.util.{Failure, Success, Try}
+import lib.Implicits._
 
 
 object Application extends Controller {
 
-  def audit(orgName: String, apiKey: String) = Action.async { implicit req =>
-    val auditDef = AuditDef.safelyCreateFor(orgName, apiKey)
+  def audit(orgName: String) = Action.async { implicit req =>
+    val auditDef = AuditDef.safelyCreateFor(orgName, apiKeyFor(req).get)
 
-    Logger.info(s"Asked to audit ${auditDef.orgLogin} seemLegit=${auditDef.seemsLegit}")
+    Logger.info(s"Asked to audit ${auditDef.org.atLogin}")
 
-    if (auditDef.seemsLegit) {
-      for (orgSnapshot <- OrgSnapshot(auditDef)) yield {
-        Logger.info(s"availableRequirementEvaluators=${orgSnapshot.availableRequirementEvaluators} ${orgSnapshot.orgUserProblemStats}")
-        orgSnapshot.createIssuesForNewProblemUsers()
+    auditDef.ensureSeemsLegit()
 
-        orgSnapshot.updateExistingAssignedIssues()
+    for (orgSnapshot <- OrgSnapshot(auditDef)) yield {
+      Logger.info(s"availableRequirementEvaluators=${orgSnapshot.availableRequirementEvaluators} ${orgSnapshot.orgUserProblemStats}")
+      orgSnapshot.createIssuesForNewProblemUsers()
 
-        orgSnapshot.closeUnassignedIssues()
+      orgSnapshot.updateExistingAssignedIssues()
 
-        Ok(views.html.userPages.results(auditDef, orgSnapshot))
-      }
-    } else future { NotAcceptable }
+      orgSnapshot.closeUnassignedIssues()
+
+      Ok(views.html.userPages.results(auditDef, orgSnapshot))
+    }
   }
 
   import GithubAppConfig._
