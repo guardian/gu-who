@@ -1,4 +1,4 @@
-@(orgs: List[org.kohsuke.github.GHOrganization], user: org.kohsuke.github.GHUser, accessToken: String)(implicit req: Request[AnyContent])
+@(orgs: List[org.kohsuke.github.GHOrganization], user: org.kohsuke.github.GHUser)(implicit req: Request[AnyContent])
 @import lib.Implicits._
 @import helper._
 @import helper.twitterBootstrap._
@@ -12,7 +12,7 @@
              All GitHub issues raised by <i>gu:who</i> will appear to be raised by this account.
             </p>
             @for(org <- orgs) {
-                @form(routes.Application.audit(org.getLogin, accessToken)) {
+                @form(routes.Application.audit(org.getLogin)) {
                     @CSRF.formField
                     <div class="gh-org">
                         <img src="@org.getAvatarUrl()" height="60px">

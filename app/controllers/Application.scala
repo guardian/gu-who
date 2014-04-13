@@ -86,8 +86,7 @@ object Application extends Controller {
        try {
          GitHub.connectUsingOAuth(accessToken)
          Redirect("/choose-your-org").withSession("userId" -> accessToken)
-       }
-       catch {
+       } catch {
          case e: IOException => {
            Ok(views.html.userPages.index(ghAuthUrl, apiKeyForm, Some("there was a problem with the key you supplied")))
          }
@@ -97,14 +96,18 @@ object Application extends Controller {
   }
 
   def chooseYourOrg = Action { implicit req =>
-    req.session.get("userId") match {
-      case Some(accessToken) => {
+    apiKeyFor(req) match {
+      case Success(accessToken) => {
         val conn = GitHub.connectUsingOAuth(accessToken)
         val orgs = conn.getMyOrganizations().values().toList
         val user = conn.getMyself
-        Ok(views.html.userPages.orgs(orgs, user, accessToken))
+        Ok(views.html.userPages.orgs(orgs, user))
       }
-      case None => Ok(views.html.userPages.index(ghAuthUrl, apiKeyForm, Some("You must be logged in to see this page")))
+      case Failure(_) => Ok(views.html.userPages.index(ghAuthUrl, apiKeyForm, Some("You must supply GitHub authentication to audit your org")))
     }
+  }
+
+  def apiKeyFor(req: RequestHeader) = Try {
+    req.session.get("userId").getOrElse(req.headers("Authorization").split(' ')(1))
   }
 }
