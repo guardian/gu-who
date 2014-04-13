@@ -30,14 +30,13 @@ import play.api.Logger
 object AuditDef {
   val parentWorkDir = Path.fromString("/tmp") / "working-dir"
 
-  def safelyCreateFor(orgName: String, apiKey: String): AuditDef = {
+  def safelyCreateFor(orgName: String, apiKey: String) = {
     val org = GitHub.connectUsingOAuth(apiKey).getOrganization(orgName)
-    AuditDef(org.getLogin, apiKey: String)
+    AuditDef(org.getLogin, apiKey)
   }
 }
 
 case class AuditDef(orgLogin: String, apiKey: String) {
-
 
   val workingDir = AuditDef.parentWorkDir / orgLogin.toLowerCase
 
