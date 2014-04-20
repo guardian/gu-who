@@ -5,6 +5,11 @@ _answering: "Who has access to my GitHub organisation - and why?"_
 
 _gu:who?_ is a simple service for auditing the members of your GitHub
 [organisation](https://github.com/blog/674-introducing-organizations).
+It was written by The Guardian to get their 200-strong GitHub
+organisation under control, resulting in 100% of membership being
+accounted for and **98%** Two-Factor-Auth enabled, up from 54% -
+you can read more about it in this
+[Guardian Developers blogpost](http://www.theguardian.com/info/developer-blog/2014/apr/11/how-the-guardian-uses-github-to-audit-github).
 
 If your organisation is large - and you have 3rd parties, contractors,
 etc who you need to give access to your code - it can be very difficult
@@ -54,3 +59,11 @@ on the [GitHub Octodex FAQ](https://octodex.github.com/faq.html).
 
 You'll just have to imagine the logo there.
 
+What else?
+----------
+
+If you're interested in Git and security, you may also be interested in
+[The BFG Repo-Cleaner](http://rtyley.github.io/bfg-repo-cleaner/), a 
+simpler, [faster](http://youtu.be/Ir4IHzPhJuI) alternative to
+`git-filter-branch` for cleansing bad data out of your Git repository -
+ie **Passwords, Credentials** & other private or unwanted data.
