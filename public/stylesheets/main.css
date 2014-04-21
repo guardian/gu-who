@@ -9,3 +9,24 @@
     bottom: 0px;
     margin-left: 5px;
 }
+
+.gw-footer {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-top: 20px;
+    color: #777;
+    text-align: center;
+    border-top: 1px solid #e5e5e5;
+}
+.gw-footer-links {
+    margin-top: 20px;
+    padding-left: 0;
+    color: #999;
+}
+.gw-footer-links li {
+    display: inline;
+    padding: 0 2px;
+}
+.gw-footer-links li:first-child {
+    padding-left: 0;
+}
