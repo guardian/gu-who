@@ -50,7 +50,7 @@ object FullNameRequirement extends AccountRequirement {
 
   def userEvaluatorFor(orgSnapshot: OrgSnapshot) = Success(new UserEvaluator {
     def appliesTo(user: GHUser) = true
-    def isSatisfiedBy(user: GHUser) = Option(user.getName()).map(_.length > 5).getOrElse(false)
+    def isSatisfiedBy(user: GHUser) = Option(user.getName()).map(_.length > 3).getOrElse(false)
   })
 }
 
