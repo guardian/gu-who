@@ -65,6 +65,7 @@ object Application extends Controller {
   val apiKeyForm = Form("apiKey" -> of[String])
 
   def oauthCallback(code: String) = Action.async {
+    import play.api.Play.current
     import GithubAppConfig._
     val resFT = WS.url(accessTokenUrl)
                   .withQueryString(("code", code),("client_id", clientId),("client_secret", clientSecret))

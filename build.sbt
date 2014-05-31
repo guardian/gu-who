@@ -2,8 +2,13 @@ name := "gu-who"
 
 version := "1.0-SNAPSHOT"
 
+scalaVersion := "2.10.4"
+
+lazy val root = (project in file(".")).enablePlugins(PlayScala)
+
 libraryDependencies ++= Seq(
   filters,
+  ws,
   "com.madgag" % "github-api" % "1.50.0.2",
   "com.github.nscala-time" %% "nscala-time" % "0.8.0",
   "com.squareup.okhttp" % "okhttp" % "1.5.3",
@@ -14,6 +19,4 @@ libraryDependencies ++= Seq(
 )     
 
 resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
-
-play.Project.playScalaSettings
 
