@@ -34,13 +34,13 @@ object OrgSnapshot {
     val peopleRepo = org.peopleRepo
     val conn = auditDef.conn()
 
-    val usersF = future {
+    val usersF = Future {
       org.listMembers.map { u => conn.getUser(u.getLogin) }.toSet
     } flatMap {
-      Future.traverse(_)(u => future { conn.getUser(u.getLogin) })
+      Future.traverse(_)(u => Future { conn.getUser(u.getLogin) })
     } andThen { case us => Logger.info(s"User count: ${us.map(_.size)}") }
 
-    val sponsoredUserLoginsF = future {
+    val sponsoredUserLoginsF = Future {
       PeopleRepo.getSponsoredUserLogins(
         auditDef.workingDir,
         peopleRepo.gitHttpTransportUrl,
@@ -48,15 +48,15 @@ object OrgSnapshot {
       )
     }
 
-    val botUsersF: Future[Set[GHUser]] = future {
+    val botUsersF: Future[Set[GHUser]] = Future {
       org.botsTeamOpt.toSeq.flatMap(_.getMembers.toSeq).toSet
     } andThen { case us => Logger.info(s"bots team count: ${us.map(_.size)}") }
 
-    val twoFactorAuthDisabledUsersF = future {
+    val twoFactorAuthDisabledUsersF = Future {
       org.listMembersWithFilter("2fa_disabled").asList().toSet
     } andThen { case us => Logger.info(s"2fa_disabled count: ${us.map(_.size)}") }  
 
-    val openIssuesF = future {
+    val openIssuesF = Future {
       peopleRepo.getIssues(GHIssueState.OPEN).toSet.filter(_.getUser==auditDef.bot)
     } andThen { case is => Logger.info(s"Open issue count: ${is.map(_.size)}") }
 

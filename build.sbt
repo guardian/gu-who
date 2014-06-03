@@ -2,7 +2,7 @@ name := "gu-who"
 
 version := "1.0-SNAPSHOT"
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.11.1"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
@@ -10,12 +10,12 @@ libraryDependencies ++= Seq(
   filters,
   ws,
   "com.madgag" % "github-api" % "1.50.0.2",
-  "com.github.nscala-time" %% "nscala-time" % "0.8.0",
+  "com.github.nscala-time" %% "nscala-time" % "1.2.0",
   "com.squareup.okhttp" % "okhttp" % "1.5.3",
-  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2",
+  "com.madgag" %% "scala-io-file" % "0.4.2",
   "org.eclipse.jgit" % "org.eclipse.jgit" % "3.3.0.201403021825-r",
-  "com.madgag" %% "scala-git" % "1.11.1",
-  "com.madgag" %% "scala-git-test" % "1.11.1" % "test"
+  "com.madgag.scala-git" %% "scala-git" % "2.4",
+  "com.madgag.scala-git" %% "scala-git-test" % "2.4" % "test"
 )     
 
 resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
