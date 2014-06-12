@@ -60,15 +60,22 @@ object PeopleRepo {
 
     implicit val reader = repo.newObjectReader()
 
-    val latestUserFileGitId = repo.resolve("master^{tree}:users.txt")
+    Option(repo.resolve("master^{tree}:users.txt")) match {
+      case Some(latestUserFileGitId) =>
+        val lines = Resource.fromInputStream(latestUserFileGitId.open.openStream()).lines()
 
-    val lines = Resource.fromInputStream(latestUserFileGitId.open.openStream()).lines()
+        val sponsoredUserNames = lines.collect { case UsernameRegex(username) => username }.toSet
 
-    val sponsoredUserNames = lines.collect { case UsernameRegex(username) => username }.toSet
+        Logger.info(s"Found ${sponsoredUserNames.size} sponsored usernames")
 
-    Logger.info(s"Found ${sponsoredUserNames.size} sponsored usernames")
+        sponsoredUserNames
+      case None =>
+        Logger.warn(s"No users.txt found! Should be in the root folder of the 'people' repo")
 
-    sponsoredUserNames
+        Set.empty
+    }
+
+
   }
 
 }
