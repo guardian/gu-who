@@ -1,4 +1,4 @@
-@(auditDef: lib.AuditDef, orgSnapsot: lib.OrgSnapshot)(implicit req: Request[AnyContent])
+@(auditDef: lib.AuditDef, orgSnapshot: lib.OrgSnapshot)(implicit req: Request[AnyContent])
 @import lib.Implicits._
 
 @main {
@@ -6,8 +6,8 @@
     <div class="row">
         <div class="col-md-12">
             <h2>Your audit is complete</h2>
-            <div class="alert alert-@if(orgSnapsot.problemUsersExist) {warning} else {success}">
-            <p>There are currently <a href="https://github.com/@auditDef.org.getLogin/people/issues/created_by/@auditDef.bot.getLogin?state=open"><strong>@orgSnapsot.usersWithProblemsCount</strong> users</a>
+            <div class="alert alert-@if(orgSnapshot.problemUsersExist) {warning} else {success}">
+            <p>There are currently <a href="https://github.com/@auditDef.org.getLogin/people/issues/created_by/@auditDef.bot.getLogin?state=open"><strong>@orgSnapshot.usersWithProblemsCount</strong> users</a>
                 in @auditDef.org.displayName's organisation that don't meet requirements.
             </p>
             </div>
