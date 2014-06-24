@@ -16,13 +16,14 @@
 
 package lib
 
+import java.net.URL
+
 import com.github.nscala_time.time.Imports._
 import com.squareup.okhttp
-import okhttp.OkHttpClient
+import okhttp.{OkHttpClient, OkUrlFactory}
 import lib.Implicits._
 import org.joda.time.DateTime
-import org.kohsuke.github.GitHub
-import org.kohsuke.github.extras.OkHttpConnector
+import org.kohsuke.github.{GitHub, HttpConnector}
 import play.api.Logger
 
 import scala.collection.convert.wrapAsScala._
@@ -59,7 +60,9 @@ case class AuditDef(orgLogin: String, apiKey: String) {
 
   def conn() = {
     val gh = GitHub.connectUsingOAuth(apiKey)
-    gh.setConnector(new OkHttpConnector(okHttpClient))
+    gh.setConnector(new HttpConnector {
+      def connect(url: URL) = new OkUrlFactory(okHttpClient).open(url)
+    })
     gh
   }
 
