@@ -9,7 +9,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 libraryDependencies ++= Seq(
   filters,
   ws,
-  "com.madgag" % "github-api" % "1.50.0.2",
+  "org.kohsuke" % "github-api" % "1.55",
   "com.github.nscala-time" %% "nscala-time" % "1.2.0",
   "com.squareup.okhttp" % "okhttp" % "1.5.3",
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1",

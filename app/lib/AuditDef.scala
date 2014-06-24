@@ -16,6 +16,8 @@
 
 package lib
 
+import org.kohsuke.github.extras.OkHttpConnector
+
 import collection.convert.wrapAsScala._
 import scalax.file.Path
 import com.squareup.okhttp.{OkHttpClient, HttpResponseCache}
@@ -56,8 +58,10 @@ case class AuditDef(orgLogin: String, apiKey: String) {
     client
   }
 
-  def conn() = new GitHub(null, apiKey, null) {
-    override def open(url: URL) = okHttpClient.open(url)
+  def conn() = {
+    val gh = GitHub.connectUsingOAuth(apiKey)
+    gh.setConnector(new OkHttpConnector(okHttpClient))
+    gh
   }
 
   lazy val (org, bot) = {
