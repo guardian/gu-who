@@ -16,18 +16,18 @@
 
 package lib
 
-import org.kohsuke.github.extras.OkHttpConnector
-
-import collection.convert.wrapAsScala._
-import scalax.file.Path
-import com.squareup.okhttp.{OkHttpClient, HttpResponseCache}
-import scalax.file.ImplicitConversions._
-import org.kohsuke.github.GitHub
-import java.net.URL
-import Implicits._
-import org.joda.time.DateTime
 import com.github.nscala_time.time.Imports._
+import com.squareup.okhttp
+import okhttp.OkHttpClient
+import lib.Implicits._
+import org.joda.time.DateTime
+import org.kohsuke.github.GitHub
+import org.kohsuke.github.extras.OkHttpConnector
 import play.api.Logger
+
+import scala.collection.convert.wrapAsScala._
+import scalax.file.ImplicitConversions._
+import scalax.file.Path
 
 object AuditDef {
   val parentWorkDir = Path.fromString("/tmp") / "working-dir"
@@ -50,8 +50,7 @@ case class AuditDef(orgLogin: String, apiKey: String) {
     val responseCacheDir = workingDir / "http-cache"
     responseCacheDir.mkdirs()
     if (responseCacheDir.exists) {
-      val httpResponseCache = new HttpResponseCache(responseCacheDir, 5 * 1024 * 1024)
-      client.setOkResponseCache(httpResponseCache)
+      client.setCache(new okhttp.Cache(responseCacheDir, 5 * 1024 * 1024))
     } else {
       Logger.warn(s"Couldn't create HttpResponseCache dir ${responseCacheDir.path}")
     }
