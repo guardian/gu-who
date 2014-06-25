@@ -38,7 +38,8 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
 
       val issue = org.peopleRepo.createIssue(title)
       for (p <- problems) { issue.label(p.issueLabel) }
-      issue.assignee(user).body(description).create()
+      val createdIssue = issue.assignee(user).body(description).create()
+      Logger.info(s"Created issue #${createdIssue.getNumber} for ${user.getLogin}")
     } else {
       Logger.info(s"No need to create an issue for ${user.getLogin} - they are no longer a member of the ${org.getLogin} org")
     }
