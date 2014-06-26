@@ -16,18 +16,20 @@
 
 package lib
 
-import org.kohsuke.github.{GHIssue, GHUser, GHOrganization}
-import Implicits._
-import collection.convert.wrapAsScala._
-import play.api.Logger
-import views.html._
+import java.io.IOException
+
 import com.github.nscala_time.time.Imports._
+import lib.Implicits._
+import org.kohsuke.github.{GHIssue, GHOrganization, GHUser}
+import play.api.Logger
+
+import scala.collection.convert.wrapAsScala._
 
 case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirements: Set[AccountRequirement], problems: Set[AccountRequirement]) {
 
   lazy val applicableLabels: Set[String] = applicableRequirements.map(_.issueLabel)
 
-  def createIssue() {
+  def createIssue() = {
     require(problems.nonEmpty)
 
     if (org.testMembership(user)) {
@@ -36,10 +38,17 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
       val title = s"@${user.getLogin}: ${org.displayName} asks you to fix your GitHub account!"
       val description = views.html.ghIssues.issue(user, org, problems).body
 
-      val issue = org.peopleRepo.createIssue(title)
-      for (p <- problems) { issue.label(p.issueLabel) }
-      val createdIssue = issue.assignee(user).body(description).create()
-      Logger.info(s"Created issue #${createdIssue.getNumber} for ${user.getLogin}")
+      val issueBuilder = org.peopleRepo.createIssue(title)
+      for (p <- problems) { issueBuilder.label(p.issueLabel) }
+      issueBuilder.assignee(user).body(description)
+
+      try {
+        val createdIssue = issueBuilder.create()
+        Logger.info(s"Created issue #${createdIssue.getNumber} for ${user.getLogin}")
+      } catch {
+        case ioe: IOException => Logger.error(s"Failed to create issue for ${user.getLogin} : $ioe")
+      }
+
     } else {
       Logger.info(s"No need to create an issue for ${user.getLogin} - they are no longer a member of the ${org.getLogin} org")
     }
