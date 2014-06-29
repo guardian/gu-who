@@ -17,6 +17,7 @@
 package lib
 
 import org.kohsuke.github._
+import play.api.Logger
 import collection.convert.wrapAsScala._
 import scala.util.{Success, Try}
 import com.github.nscala_time.time.Imports._
@@ -47,19 +48,25 @@ object Implicits {
 
     lazy val allTeamOpt = teamsByName.get("all")
 
-    lazy val allTeam =  allTeamOpt.getOrElse(createAllTeam)
+    lazy val allTeam =  {
+      val team = allTeamOpt.getOrElse(createAllTeam)
+      Logger.info(s"'${team.getName}' team : permission=${team.getPermission} people-repo-access=${team.getRepositories.contains("people")}")
+      team
+    }
 
     lazy val botsTeamOpt = teamsByName.get("bots")
 
     def testMembership(user: GHUser): Boolean = {
       if (user.isMemberOf(allTeam)) true else {
         val orgMember = user.isMemberOf(org)
+        Logger.info(s"user ${user.getLogin} NOT in 'all' team. orgMember=${orgMember}")
         if (orgMember) { allTeam.add(user) }
         orgMember
       }
     }
 
     def createAllTeam: GHTeam = {
+      Logger.info(s"Creating 'all' team for ${org.atLogin}")
       val team = org.createTeam("all", Permission.PULL)
       team.add(peopleRepo)
       team
