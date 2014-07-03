@@ -81,7 +81,9 @@ case class AuditDef(orgLogin: String, apiKey: String) {
   def ensureSeemsLegit() = {
     require(bot.isMemberOf(org), s"Supplied bot account ${bot.atLogin} must be a member of ${org.atLogin}")
     require(org.listPublicMembers.exists(_.createdAt < DateTime.now - 3.months),
-      s"Organisation ${org.atLogin} must have at least one *public* member whose account is over 3 months old")
+      (s"Organisation ${org.atLogin} must have at least one *public* member whose account is over 3 months old.\n" +
+       s"If your account is over 3 months old, please go to your Organization page, follow the Members link " +
+       s"on the top right of the page and follow the 'make public' link against your user name."))
   }
 
 }
