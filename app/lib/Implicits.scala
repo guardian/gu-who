@@ -42,6 +42,8 @@ object Implicits {
 
   implicit class RichOrg(org: GHOrganization) {
 
+    lazy val membersAdminUrl = s"https://github.com/orgs/${org.getLogin}/members"
+
     lazy val peopleRepo = org.getRepository("people")
 
     lazy val teamsByName: Map[String, GHTeam] = org.getTeams().toMap
