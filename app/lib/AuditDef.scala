@@ -87,7 +87,8 @@ case class AuditDef(orgLogin: String, apiKey: String) {
       s"""
       |The organisation must have at least one public member whose GitHub account is over 3 months old.
       |If your account is over 3 months old, please go to ${org.membersAdminUrl}
-      |and follow the 'make public' link against your user name.
+      |and follow the 'make public' link against your user name. See also:
+      |https://help.github.com/articles/publicizing-or-concealing-organization-membership
        """.stripMargin
 
     require(publicMembers.nonEmpty,

@@ -13,6 +13,6 @@ Thanks for fixing those requirements (ie @update.fixedRequirements.map(_.issueLa
 @if(update.orgMembershipWillBeConcealed) {
 We've made your membership of @(organ.getName)'s organisation on GitHub non-public, to make it less likely an attacker can find it.
 
-Once you've addressed the requirements above, you (and [only](https://developer.github.com/v3/orgs/members/#publicize-a-users-membership) you) can [re-publicise your membership](https://github.com/orgs/@(organ.getLogin)/members) if it's appropriate.
+Once you've addressed the requirements above, you (and [only](https://help.github.com/articles/publicizing-or-concealing-organization-membership) you) can [re-publicise your membership](${organ.membersAdminUrl}) if it's appropriate.
 }
 }
