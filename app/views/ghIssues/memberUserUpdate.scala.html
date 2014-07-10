@@ -1,7 +1,8 @@
 @(update: lib.MemberUserUpdate)(implicit organ: org.kohsuke.github.GHOrganization)
+@import lib.Implicits._
 
 @if(update.userShouldReceiveFinalWarning) {
-**WARNING:** If requirements for this account aren't met, it will be removed from @(organ.getName)'s organisation on @(views.Dates.DateFormatter.print(update.terminationDate)).
+**WARNING:** If requirements for this account aren't met, it will be removed from @(organ.displayName)'s organisation on @(views.Dates.DateFormatter.print(update.terminationDate)).
 }
 
 @if(update.fixedRequirements.nonEmpty) {
@@ -11,7 +12,7 @@ Thanks for fixing those requirements (ie @update.fixedRequirements.map(_.issueLa
 @problemList(update.currentProblems)
 
 @if(update.orgMembershipWillBeConcealed) {
-We've made your membership of @(organ.getName)'s organisation on GitHub non-public, to make it less likely an attacker can find it.
+We've made your membership of @(organ.displayName)'s organisation on GitHub non-public, to make it less likely an attacker can find it.
 
 Once you've addressed the requirements above, you (and [only](https://help.github.com/articles/publicizing-or-concealing-organization-membership) you) can [re-publicise your membership](${organ.membersAdminUrl}) if it's appropriate.
 }
