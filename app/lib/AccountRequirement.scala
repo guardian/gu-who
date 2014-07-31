@@ -60,7 +60,7 @@ object SponsorRequirement extends AccountRequirement {
   override val issueLabel = "Sponsor"
 
   override def fixSummary(implicit org: GHOrganization) =
-    "Get a Pull-Request opened to add your username to our " +
+    "Get a pull request opened to add your username to our " +
       s"[users.txt](https://github.com/${org.getLogin}/people/blob/master/users.txt) file " +
       s"_- ideally, a Tech Lead or Dev Manager at ${org.displayName} should open this request for you_."
 
@@ -76,7 +76,7 @@ object TwoFactorAuthRequirement extends AccountRequirement {
   override val issueLabel = "TwoFactorAuth"
 
   override def fixSummary(implicit org: GHOrganization) =
-    "Enable [Two-Factor Authentication](https://help.github.com/articles/about-two-factor-authentication) " +
+    "Enable [two-factor authentication](https://help.github.com/articles/about-two-factor-authentication) " +
       "in your [GitHub account settings](https://github.com/settings/admin)."
 
   def userEvaluatorFor(orgSnapshot: OrgSnapshot) = for (tfaDisabledUsers <- orgSnapshot.twoFactorAuthDisabledUserLogins) yield
