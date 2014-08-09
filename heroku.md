@@ -3,6 +3,11 @@ Setting up _gu:who_ on Heroku
 
 Follow the [Heroku Quick-Start guide](https://devcenter.heroku.com/articles/quickstart) to get your developement environment setup with Heroku.
 
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+
+Manual Instructions
+-------------------
+
 Create a new Heroku app (eg `gu-who-nologo`), and push a clone of the [`gu:who` repository](https://github.com/guardian/gu-who) to the Heroku Git url to deploy the app (you'll see lots of dependencies downloaded, could take ~5 minutes):
 
 ```
