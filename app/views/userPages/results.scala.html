@@ -13,7 +13,7 @@
             </div>
             <p>You can re-run this process, and update the associated issues, by calling our endpoint directly:</p>
 
-            <code>curl -X POST http://@req.host/audit/@auditDef.org.getLogin?apiKey={{ YOUR_GITHUB_API_KEY }}</code>
+            <code>curl -X POST -H "Csrf-Token: nocheck" -H "Authorization: token {{ YOUR_GITHUB_API_KEY }}" http://@req.host/audit/@auditDef.org.getLogin</code>
             
             <p>Your <a href="https://help.github.com/articles/creating-an-access-token-for-command-line-use">GitHub API</a>
                 key needs to have the scopes <code>repo</code> and <code>write:org</code>.
