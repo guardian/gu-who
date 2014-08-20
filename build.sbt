@@ -20,5 +20,7 @@ libraryDependencies ++= Seq(
   "com.madgag.scala-git" %% "scala-git-test" % "2.4" % "test"
 )     
 
-resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
+sources in (Compile,doc) := Seq.empty
+
+publishArtifact in (Compile, packageDoc) := false
 
