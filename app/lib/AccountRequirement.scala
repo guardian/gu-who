@@ -65,7 +65,7 @@ object SponsorRequirement extends AccountRequirement {
       s"_- ideally, a Tech Lead or Dev Manager at ${org.displayName} should open this request for you_."
 
   def userEvaluatorFor(orgSnapshot: OrgSnapshot) = Success(new UserEvaluator {
-    def isSatisfiedBy(user: GHUser) = orgSnapshot.sponsoredUserLogins.contains(user.getLogin)
+    def isSatisfiedBy(user: GHUser) = orgSnapshot.sponsoredUserLoginsLowerCase.contains(user.getLogin.toLowerCase)
     def appliesTo(user: GHUser) = true
   })
 }

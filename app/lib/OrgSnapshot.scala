@@ -79,6 +79,8 @@ case class OrgSnapshot(
   openIssues: Set[GHIssue]
 ) {
 
+  lazy val sponsoredUserLoginsLowerCase = sponsoredUserLogins.map(_.toLowerCase)
+
   private lazy val evaluatorsByRequirement= AccountRequirements.All.map(ar => ar -> ar.userEvaluatorFor(this)).toMap
 
   lazy val availableRequirementEvaluators: Iterable[AccountRequirement#UserEvaluator] = evaluatorsByRequirement.collect { case (_, Success(evaluator)) => evaluator }
