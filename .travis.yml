@@ -1,7 +1,11 @@
 language: scala
 scala:
-   - 2.11.1
-
+- 2.11.4
 jdk:
-  - openjdk7
-
+- openjdk7
+after_success:
+- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && sbt stage
+  deployHeroku
+env:
+  global:
+    secure: jEMZHOSfLoplIRsNV5b1G3a83I1lLaRxqrgxKExULAFFYglZRZjNV5EoJWllsaot/LyQZSWhJ42KiUVi8NVEn3pcBPB+Gq/QCjWvZRdJVloQUfiypCEqRRu1P45TkpqY7/Jz1q6xhLOC7G7+Lkf06t+gvTccNHh3l9xiJnxVV/k=
