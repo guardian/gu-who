@@ -28,7 +28,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 libraryDependencies ++= Seq(
   filters,
   ws,
-  "org.webjars" % "bootstrap" % "3.2.0",
+  "org.webjars" % "bootstrap" % "3.3.0",
   "org.kohsuke" % "github-api" % "1.59",
   "com.github.nscala-time" %% "nscala-time" % "1.4.0",
   "com.squareup.okhttp" % "okhttp" % "2.0.0",
