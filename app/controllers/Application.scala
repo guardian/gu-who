@@ -109,6 +109,9 @@ object Application extends Controller {
   }
 
   def apiKeyFor(req: RequestHeader) = Try {
-    req.session.get("userId").getOrElse(req.headers("Authorization").split(' ')(1))
+    Seq(
+      req.getQueryString("access_token"),
+      req.session.get("userId")
+    ).flatten.headOption.getOrElse(req.headers("Authorization").split(' ')(1))
   }
 }
