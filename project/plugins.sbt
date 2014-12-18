@@ -10,6 +10,6 @@ resolvers += Resolver.url("heroku-sbt-plugin-releases",
 addSbtPlugin("com.heroku" % "sbt-heroku" % "0.3.0")
 
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.6")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.7")
 
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.3.2")
