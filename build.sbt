@@ -4,6 +4,8 @@ version := "1.0-SNAPSHOT"
 
 scalaVersion := "2.11.4"
 
+updateOptions := updateOptions.value.withCachedResolution(true)
+
 herokuAppName in Compile := "gu-who"
 
 herokuJdkVersion in Compile := "1.8"
