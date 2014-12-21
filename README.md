@@ -63,7 +63,7 @@ What else?
 ----------
 
 If you're interested in Git and security, you may also be interested in
-[The BFG Repo-Cleaner](http://rtyley.github.io/bfg-repo-cleaner/), a 
+[The BFG Repo-Cleaner](https://rtyley.github.io/bfg-repo-cleaner/), a 
 simpler, [faster](http://youtu.be/Ir4IHzPhJuI) alternative to
 `git-filter-branch` for cleansing bad data out of your Git repository -
 ie **Passwords, Credentials** & other private or unwanted data.
