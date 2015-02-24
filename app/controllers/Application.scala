@@ -16,6 +16,7 @@
 
 package controllers
 
+import org.eclipse.jgit.lib.ObjectId
 import play.api.mvc._
 import lib._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -23,16 +24,16 @@ import scala.concurrent._
 import play.api.libs.ws.WS
 import org.kohsuke.github.GitHub
 import collection.convert.wrapAsScala._
-import play.api.libs.json.JsString
+import play.api.libs.json.{Json, JsString}
 import scala.Some
-import play.api.Logger
+import play.api.{Play, Logger}
 import play.api.data.Forms._
 import play.api.data.format.Formats._
 import play.api.data.Form
-import java.io.IOException
+import java.io.{File, IOException}
 import scala.util.{Failure, Success, Try}
 import lib.Implicits._
-
+import play.api.Play.current
 
 object Application extends Controller {
 
@@ -113,5 +114,18 @@ object Application extends Controller {
       req.getQueryString("access_token"),
       req.session.get("userId")
     ).flatten.headOption.getOrElse(req.headers("Authorization").split(' ')(1))
+  }
+
+  lazy val gitCommitId = gitCommitIdFromHerokuFile.getOrElse(app.BuildInfo.gitCommitId)
+
+  def gitCommitIdFromHerokuFile: Option[String]  = {
+    val file = new File("/etc/heroku/dyno")
+    val existingFile = if (file.exists && file.isFile) Some(file) else None
+
+    for {
+      f <- existingFile
+      text <- (Json.parse(scala.io.Source.fromFile(f).mkString) \ "release" \ "commit").asOpt[String]
+      objectId <- Try(ObjectId.fromString(text)).toOption
+    } yield objectId.name
   }
 }
