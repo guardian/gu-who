@@ -31,7 +31,7 @@ libraryDependencies ++= Seq(
   filters,
   ws,
   "org.webjars" % "bootstrap" % "3.3.1",
-  "org.kohsuke" % "github-api" % "1.59",
+  "org.kohsuke" % "github-api" % "1.59" exclude("org.jenkins-ci", "annotation-indexer"),
   "com.github.nscala-time" %% "nscala-time" % "1.4.0",
   "com.squareup.okhttp" % "okhttp" % "2.0.0",
   "com.squareup.okhttp" % "okhttp-urlconnection" % "2.0.0",
