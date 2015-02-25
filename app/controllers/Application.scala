@@ -116,11 +116,17 @@ object Application extends Controller {
     ).flatten.headOption.getOrElse(req.headers("Authorization").split(' ')(1))
   }
 
-  lazy val gitCommitId = gitCommitIdFromHerokuFile.getOrElse(app.BuildInfo.gitCommitId)
+  lazy val gitCommitId = {
+    val g = gitCommitIdFromHerokuFile
+    Logger.info(s"Heroku dyno commit id $g")
+    g.getOrElse(app.BuildInfo.gitCommitId)
+  }
 
   def gitCommitIdFromHerokuFile: Option[String]  = {
     val file = new File("/etc/heroku/dyno")
     val existingFile = if (file.exists && file.isFile) Some(file) else None
+
+    Logger.info(s"Heroku dyno metadata $existingFile")
 
     for {
       f <- existingFile
