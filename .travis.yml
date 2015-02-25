@@ -9,9 +9,3 @@ cache:
   - $HOME/.sbt
   - $HOME/.ivy2
 script: sbt ++$TRAVIS_SCALA_VERSION test && find $HOME/.sbt -name "*.lock" -type f -delete && find $HOME/.ivy2/cache -name "*[\[\]\(\)]*.properties" -type f -delete
-after_success:
-- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && sbt stage
-  deployHeroku
-env:
-  global:
-    secure: jEMZHOSfLoplIRsNV5b1G3a83I1lLaRxqrgxKExULAFFYglZRZjNV5EoJWllsaot/LyQZSWhJ42KiUVi8NVEn3pcBPB+Gq/QCjWvZRdJVloQUfiypCEqRRu1P45TkpqY7/Jz1q6xhLOC7G7+Lkf06t+gvTccNHh3l9xiJnxVV/k=

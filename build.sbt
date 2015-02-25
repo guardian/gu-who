@@ -6,10 +6,6 @@ scalaVersion := "2.11.5"
 
 updateOptions := updateOptions.value.withCachedResolution(true)
 
-herokuAppName in Compile := "gu-who"
-
-herokuJdkVersion in Compile := "1.8"
-
 buildInfoSettings
 
 sourceGenerators in Compile <+= buildInfo
@@ -44,4 +40,3 @@ libraryDependencies ++= Seq(
 sources in (Compile,doc) := Seq.empty
 
 publishArtifact in (Compile, packageDoc) := false
-
