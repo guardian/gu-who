@@ -87,7 +87,7 @@ object Implicits {
 
   implicit class RichPerson(person: GHPerson) {
 
-    lazy val createdAt = dateTimeFormatter.parseDateTime(person.getCreatedAt)
+    lazy val createdAt = new DateTime(person.getCreatedAt)
 
     lazy val atLogin = s"@${person.getLogin}"
 

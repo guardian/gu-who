@@ -26,15 +26,15 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 libraryDependencies ++= Seq(
   filters,
   ws,
-  "org.webjars" % "bootstrap" % "3.3.1",
-  "org.kohsuke" % "github-api" % "1.59" exclude("org.jenkins-ci", "annotation-indexer"),
-  "com.github.nscala-time" %% "nscala-time" % "1.4.0",
-  "com.squareup.okhttp" % "okhttp" % "2.0.0",
-  "com.squareup.okhttp" % "okhttp-urlconnection" % "2.0.0",
+  "org.webjars" % "bootstrap" % "3.3.2-1",
+  "org.kohsuke" % "github-api" % "1.62" exclude("org.jenkins-ci", "annotation-indexer"),
+  "com.github.nscala-time" %% "nscala-time" % "1.8.0",
+  "com.squareup.okhttp" % "okhttp" % "2.2.0",
+  "com.squareup.okhttp" % "okhttp-urlconnection" % "2.2.0",
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1",
-  "org.eclipse.jgit" % "org.eclipse.jgit" % "3.5.1.201410131835-r",
-  "com.madgag.scala-git" %% "scala-git" % "2.7",
-  "com.madgag.scala-git" %% "scala-git-test" % "2.7" % "test"
+  "org.eclipse.jgit" % "org.eclipse.jgit" % "3.6.2.201501210735-r",
+  "com.madgag.scala-git" %% "scala-git" % "2.9",
+  "com.madgag.scala-git" %% "scala-git-test" % "2.9" % "test"
 )     
 
 sources in (Compile,doc) := Seq.empty
