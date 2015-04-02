@@ -17,6 +17,7 @@
 package controllers
 
 import org.eclipse.jgit.lib.ObjectId
+import play.api.cache.Cache
 import play.api.mvc._
 import lib._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -44,17 +45,25 @@ object Application extends Controller {
 
     auditDef.ensureSeemsLegit()
 
-    for (orgSnapshot <- OrgSnapshot(auditDef)) yield {
-      Logger.info(s"availableRequirementEvaluators=${orgSnapshot.availableRequirementEvaluators} ${orgSnapshot.orgUserProblemStats}")
-      orgSnapshot.createIssuesForNewProblemUsers()
-
-      orgSnapshot.updateExistingAssignedIssues()
-
-      orgSnapshot.closeUnassignedIssues()
-
+    for (orgSnapshot <- scan(auditDef)) yield {
       Ok(views.html.userPages.results(auditDef, orgSnapshot))
     }
   }
+
+  def scan(auditDef: AuditDef) = Cache.getOrElse(auditDef.toString) {
+    new Dogpile[OrgSnapshot](
+      for (orgSnapshot <- OrgSnapshot(auditDef)) yield {
+        Logger.info(s"availableRequirementEvaluators=${orgSnapshot.availableRequirementEvaluators} ${orgSnapshot.orgUserProblemStats}")
+        orgSnapshot.createIssuesForNewProblemUsers()
+
+        orgSnapshot.updateExistingAssignedIssues()
+
+        orgSnapshot.closeUnassignedIssues()
+
+        orgSnapshot
+      }
+    )
+  }.doAtLeastOneMore()
 
   import GithubAppConfig._
   val ghAuthUrl = s"${authUrl}?client_id=${clientId}&scope=${scope}"
