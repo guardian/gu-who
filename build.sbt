@@ -24,8 +24,10 @@ buildInfoPackage := "app"
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 libraryDependencies ++= Seq(
+  cache,
   filters,
   ws,
+  "com.typesafe.akka" %% "akka-agent" % "2.3.2",
   "org.webjars" % "bootstrap" % "3.3.2-1",
   "org.kohsuke" % "github-api" % "1.66" exclude("org.jenkins-ci", "annotation-indexer"),
   "com.github.nscala-time" %% "nscala-time" % "1.8.0",
