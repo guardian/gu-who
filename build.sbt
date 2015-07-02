@@ -2,7 +2,7 @@ name := "gu-who"
 
 version := "1.0-SNAPSHOT"
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.11.7"
 
 updateOptions := updateOptions.value.withCachedResolution(true)
 
