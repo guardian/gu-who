@@ -67,3 +67,5 @@ If you're interested in Git and security, you may also be interested in
 simpler, [faster](http://youtu.be/Ir4IHzPhJuI) alternative to
 `git-filter-branch` for cleansing bad data out of your Git repository -
 ie **Passwords, Credentials** & other private or unwanted data.
+
+You mgiht also be interested in [Prout](https://www.theguardian.com/info/developer-blog/2015/feb/03/prout-is-your-pull-request-out).
