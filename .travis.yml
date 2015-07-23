@@ -8,4 +8,7 @@ cache:
   directories:
   - $HOME/.sbt
   - $HOME/.ivy2
-script: sbt ++$TRAVIS_SCALA_VERSION test && find $HOME/.sbt -name "*.lock" -type f -delete && find $HOME/.ivy2/cache -name "*[\[\]\(\)]*.properties" -type f -delete
+before_cache:
+  - find $HOME/.sbt -name "*.lock" -type f -delete -print
+  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete -print
+
