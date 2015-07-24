@@ -4,7 +4,7 @@
   "repository": "https://github.com/guardian/gu-who",
   "logo": "https://cloud.githubusercontent.com/assets/52038/6084/94fb8e46-c0ea-11e3-90f8-708387e95b4d.png",
   "success_url": "/",
-  "keywords": ["github", "audit", "organisation"],
+  "keywords": ["github", "audit", "organisation", "membership"],
   "env": {
     "GITHUB_APP_CLIENT_ID": {
       "description": "If you want to use the convenient 'Log In via GitHub` method to authenticate via OAuth V2, you'll need to register your instance of gu:who as an application in your GitHub settings.",
