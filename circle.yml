@@ -1,0 +1,16 @@
+## Customize the test machine
+machine:
+  java:
+    version: oraclejdk8
+
+dependencies:
+  override:
+    - sbt test:compile
+  cache_directories:
+    - "~/.ivy2"
+    - "~/.sbt"
+
+test:
+  override:
+    - sbt fast-test
+
