@@ -12,5 +12,5 @@ dependencies:
 
 test:
   override:
-    - sbt fast-test
+    - sbt test
 
