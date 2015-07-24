@@ -6,6 +6,9 @@ machine:
 dependencies:
   override:
     - sbt test:compile
+  cache_directories:
+    - "~/.ivy2"
+    - "~/.sbt/boot/scala-2.10.4"
 
 test:
   override:
