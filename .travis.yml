@@ -6,11 +6,11 @@ jdk:
 sudo: false
 cache:
   directories:
-  - $HOME/.sbt
+  - $HOME/.sbt/0.13
+  - $HOME/.sbt/boot/scala*
+  - $HOME/.sbt/launchers
   - $HOME/.ivy2
 before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete
-  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete
-  - echo "Well, all deleting should be done... listing remaining files"
-  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -print
+  - find $HOME/.ivy2/cache -name "*[\[\]\(\)]*.properties" -type f -delete
 
