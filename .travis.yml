@@ -12,7 +12,8 @@ cache:
   - $HOME/.sbt/launchers
   - $HOME/.ivy2
 before_cache:
-  - ls -la $HOME/.sbt/boot/
+  - du -h -d 1 $HOME/.ivy2/
+  - du -h -d 2 $HOME/.sbt/
   - find $HOME/.sbt -name "*.lock" -type f -delete
-  - find $HOME/.ivy2/cache -name "*[\[\]\(\)]*.properties" -type f -delete
+  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete
 
