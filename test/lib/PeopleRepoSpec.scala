@@ -1,11 +1,12 @@
 package lib
 
-import org.specs2.mutable.Specification
 import com.madgag.git.test._
+import org.scalatestplus.play.PlaySpec
+
 import scalax.file.ImplicitConversions._
 import scalax.file.Path
 
-class PeopleRepoSpec extends Specification {
+class PeopleRepoSpec extends PlaySpec {
 
   "Retrieving sponsored users" should {
     "extract sponsored user logins after cloning a remote repo" in {
@@ -14,7 +15,7 @@ class PeopleRepoSpec extends Specification {
 
       val logins = PeopleRepo.getSponsoredUserLogins(Path.createTempDirectory(), demoRemoteRepo.getDirectory.getAbsolutePath)
 
-      logins mustEqual(Set("philwills", "tackley", "shufgy", "rtyley", "lindseydew"))
+      logins mustEqual Set("philwills", "tackley", "shufgy", "rtyley", "lindseydew")
     }
 
     "return an empty set, when no users.txt found" in {
@@ -23,7 +24,7 @@ class PeopleRepoSpec extends Specification {
 
       val logins = PeopleRepo.getSponsoredUserLogins(Path.createTempDirectory(), demoRemoteRepo.getDirectory.getAbsolutePath)
 
-      logins must beEmpty
+      logins mustBe empty
     }
   }
 

@@ -16,30 +16,26 @@
 
 package controllers
 
-import org.eclipse.jgit.lib.ObjectId
-import play.api.cache.Cache
-import play.api.mvc._
+
+import com.madgag.playgithub.auth.AuthenticatedSessions.AccessToken
+import lib.Implicits._
 import lib._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent._
-import play.api.libs.ws.WS
-import org.kohsuke.github.GitHub
-import collection.convert.wrapAsScala._
-import play.api.libs.json.{Json, JsString}
-import scala.Some
-import play.api.{Play, Logger}
+import lib.actions.Actions._
+import play.api.Logger
+import play.api.Play.current
+import play.api.cache.Cache
+import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.format.Formats._
-import play.api.data.Form
-import java.io.{File, IOException}
-import scala.util.{Failure, Success, Try}
-import lib.Implicits._
-import play.api.Play.current
+import play.api.mvc._
+
+import scala.collection.convert.wrapAsScala._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object Application extends Controller {
 
-  def audit(orgName: String) = Action.async { implicit req =>
-    val auditDef = AuditDef.safelyCreateFor(orgName, apiKeyFor(req).get)
+  def audit(orgName: String) = GitHubAuthenticatedAction.async { implicit req =>
+    val auditDef = AuditDef.safelyCreateFor(orgName, req.gitHubCredentials)
 
     Logger.info(s"Asked to audit ${auditDef.org.atLogin}")
 
@@ -65,82 +61,19 @@ object Application extends Controller {
     )
   }.doAtLeastOneMore()
 
-  import GithubAppConfig._
-  val ghAuthUrl = s"${authUrl}?client_id=${clientId}&scope=${scope}"
-
   def index = Action { implicit req =>
-    Ok(views.html.userPages.index(ghAuthUrl, apiKeyForm))
+    Ok(views.html.userPages.index(apiKeyForm))
   }
 
   val apiKeyForm = Form("apiKey" -> of[String])
 
-  def oauthCallback(code: String) = Action.async {
-    import play.api.Play.current
-    import GithubAppConfig._
-    val resFT = WS.url(accessTokenUrl)
-                  .withQueryString(("code", code),("client_id", clientId),("client_secret", clientSecret))
-                  .withHeaders(("Accept", "application/json"))
-                  .post("")
-
-    resFT.map{ res =>
-      res.json \ "access_token" match {
-        case JsString(accessCode) => Redirect("/choose-your-org").withSession("userId" -> accessCode)
-        case _ => Redirect("/")
-      }
-    }
+  def storeApiKey() = Action(parse.form(apiKeyForm)) { implicit req =>
+    val accessToken = req.body
+    Redirect("/choose-your-org").withSession(AccessToken.SessionKey -> accessToken)
   }
 
-  def storeApiKey() = Action { implicit req =>
-   apiKeyForm.bindFromRequest().fold(
-     formWithErrors =>  Ok(views.html.userPages.index(ghAuthUrl, formWithErrors)),
-     accessToken => {
-       try {
-         GitHub.connectUsingOAuth(accessToken)
-         Redirect("/choose-your-org").withSession("userId" -> accessToken)
-       } catch {
-         case e: IOException => {
-           Ok(views.html.userPages.index(ghAuthUrl, apiKeyForm, Some("there was a problem with the key you supplied")))
-         }
-       }
-     }
-   )
-  }
-
-  def chooseYourOrg = Action { implicit req =>
-    apiKeyFor(req) match {
-      case Success(accessToken) => {
-        val conn = GitHub.connectUsingOAuth(accessToken)
-        val orgs = conn.getMyOrganizations().values().toList
-        val user = conn.getMyself
-        Ok(views.html.userPages.orgs(orgs, user))
-      }
-      case Failure(_) => Ok(views.html.userPages.index(ghAuthUrl, apiKeyForm, Some("You must supply GitHub authentication to audit your org")))
-    }
-  }
-
-  def apiKeyFor(req: RequestHeader) = Try {
-    Seq(
-      req.getQueryString("access_token"),
-      req.session.get("userId")
-    ).flatten.headOption.getOrElse(req.headers("Authorization").split(' ')(1))
-  }
-
-  lazy val gitCommitId = {
-    val g = gitCommitIdFromHerokuFile
-    Logger.info(s"Heroku dyno commit id $g")
-    g.getOrElse(app.BuildInfo.gitCommitId)
-  }
-
-  def gitCommitIdFromHerokuFile: Option[String]  = {
-    val file = new File("/etc/heroku/dyno")
-    val existingFile = if (file.exists && file.isFile) Some(file) else None
-
-    Logger.info(s"Heroku dyno metadata $existingFile")
-
-    for {
-      f <- existingFile
-      text <- (Json.parse(scala.io.Source.fromFile(f).mkString) \ "release" \ "commit").asOpt[String]
-      objectId <- Try(ObjectId.fromString(text)).toOption
-    } yield objectId.name
+  def chooseYourOrg = GitHubAuthenticatedAction { implicit req =>
+    val orgs = req.gitHub.getMyOrganizations.values().toList
+    Ok(views.html.userPages.orgs(orgs, req.user))
   }
 }

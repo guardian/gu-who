@@ -16,23 +16,22 @@
 
 package lib
 
+import lib.Implicits._
 import org.kohsuke.github._
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
-import collection.convert.wrapAsScala._
-import concurrent._
-import ExecutionContext.Implicits.global
-import scalax.file._
-import scalax.file.ImplicitConversions._
 import play.api.Logger
-import Implicits._
+
+import scala.collection.convert.wrapAsScala._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
 import scala.util.{Failure, Success, Try}
+import scalax.file.ImplicitConversions._
 
 object OrgSnapshot {
   
   def apply(auditDef: AuditDef): Future[OrgSnapshot] = {
     val org = auditDef.org
     val peopleRepo = org.peopleRepo
-    val conn = auditDef.conn()
+    val conn = auditDef.ghCreds.conn()
 
     val usersF = Future {
       org.listMembers.map { u => conn.getUser(u.getLogin) }.toSet
@@ -44,7 +43,7 @@ object OrgSnapshot {
       PeopleRepo.getSponsoredUserLogins(
         auditDef.workingDir,
         peopleRepo.gitHttpTransportUrl,
-        Some(new UsernamePasswordCredentialsProvider(auditDef.apiKey, ""))
+        Some(auditDef.ghCreds.git)
       )
     }
 
@@ -99,7 +98,7 @@ case class OrgSnapshot(
       )
   }.toMap
 
-  lazy val usersWithProblemsCount = orgUserProblemsByUser.values.count(_.problems.size > 0)
+  lazy val usersWithProblemsCount = orgUserProblemsByUser.values.count(_.problems.nonEmpty)
 
   lazy val problemUsersExist = usersWithProblemsCount > 0
 

@@ -1,6 +1,6 @@
-@(ghAuthUrl: String, apiKeyForm: Form[String], error: Option[String] = None)(implicit req: Request[AnyContent])
+@(apiKeyForm: Form[String], error: Option[String] = None)(implicit req: Request[AnyContent])
 @import helper._
-@import helper.twitterBootstrap._
+
 @main {
     <div class="row">
         @if(error.isDefined) {
@@ -23,7 +23,7 @@
             </div>
             }
             <p>or</p>
-            <a href="@ghAuthUrl"><button class="btn btn-primary input-lg">Log In via GitHub!</button></a>
+            <a href="@routes.Application.chooseYourOrg()"><button class="btn btn-primary input-lg">Log In via GitHub!</button></a>
         </div>
     </div>
 
