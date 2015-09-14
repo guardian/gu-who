@@ -16,58 +16,33 @@
 
 package lib
 
-import java.net.URL
-
 import com.github.nscala_time.time.Imports._
-import com.squareup.okhttp
-import okhttp.{OkHttpClient, OkUrlFactory}
+import com.madgag.github.GitHubCredentials
 import lib.Implicits._
 import org.joda.time.DateTime
-import org.kohsuke.github.{GitHub, HttpConnector}
-import play.api.Logger
 
 import scala.collection.convert.wrapAsScala._
 import scalax.file.ImplicitConversions._
 import scalax.file.Path
 
 object AuditDef {
-  val parentWorkDir = Path.fromString("/tmp") / "working-dir"
 
-  def safelyCreateFor(orgName: String, apiKey: String) = {
-    val org = GitHub.connectUsingOAuth(apiKey).getOrganization(orgName)
-    AuditDef(org.getLogin, apiKey)
+  val parentWorkDir = Path.fromString("/tmp") / "gu-who" / "working-dir"
+
+  def safelyCreateFor(orgName: String, ghCreds: GitHubCredentials) = {
+    val org = ghCreds.conn().getOrganization(orgName)
+    AuditDef(org.getLogin, ghCreds)
   }
 }
 
-case class AuditDef(orgLogin: String, apiKey: String) {
+case class AuditDef(orgLogin: String, ghCreds: GitHubCredentials) {
 
   val workingDir = AuditDef.parentWorkDir / orgLogin.toLowerCase
 
   workingDir.mkdirs()
 
-  lazy val okHttpClient = {
-    val client = new OkHttpClient
-
-    val responseCacheDir = workingDir / "http-cache"
-    responseCacheDir.mkdirs()
-    if (responseCacheDir.exists) {
-      client.setCache(new okhttp.Cache(responseCacheDir, 5 * 1024 * 1024))
-    } else {
-      Logger.warn(s"Couldn't create HttpResponseCache dir ${responseCacheDir.path}")
-    }
-    client
-  }
-
-  def conn() = {
-    val gh = GitHub.connectUsingOAuth(apiKey)
-    gh.setConnector(new HttpConnector {
-      def connect(url: URL) = new OkUrlFactory(okHttpClient).open(url)
-    })
-    gh
-  }
-
   lazy val (org, bot) = {
-    val c = conn()
+    val c = ghCreds.conn()
 
     val org = c.getOrganization(orgLogin)
 

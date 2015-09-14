@@ -23,20 +23,23 @@ buildInfoPackage := "app"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
+resolvers ++= Seq(
+  // Resolver.mavenLocal,
+  Resolver.sonatypeRepo("releases")
+)
+
 libraryDependencies ++= Seq(
   cache,
   filters,
   ws,
   "com.typesafe.akka" %% "akka-agent" % "2.3.2",
-  "org.webjars" % "bootstrap" % "3.3.2-1",
-  "org.kohsuke" % "github-api" % "1.66" exclude("org.jenkins-ci", "annotation-indexer"),
-  "com.github.nscala-time" %% "nscala-time" % "1.8.0",
-  "com.squareup.okhttp" % "okhttp" % "2.3.0",
-  "com.squareup.okhttp" % "okhttp-urlconnection" % "2.3.0",
+  "org.webjars" % "bootstrap" % "3.3.5",
+  "com.adrianhurt" %% "play-bootstrap3" % "0.4.4-P24",
+  "com.madgag" %% "play-git-hub" % "2.2",
+  "com.github.nscala-time" %% "nscala-time" % "2.2.0",
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1",
-  "org.eclipse.jgit" % "org.eclipse.jgit" % "3.7.0.201502260915-r",
-  "com.madgag.scala-git" %% "scala-git" % "2.9",
-  "com.madgag.scala-git" %% "scala-git-test" % "2.9" % "test"
+  "com.madgag.scala-git" %% "scala-git-test" % "3.3" % "test",
+  "org.scalatestplus" %% "play" % "1.4.0-M4" % "test"
 )     
 
 sources in (Compile,doc) := Seq.empty
