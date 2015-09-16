@@ -6,10 +6,6 @@ scalaVersion := "2.11.7"
 
 updateOptions := updateOptions.value.withCachedResolution(true)
 
-buildInfoSettings
-
-sourceGenerators in Compile <+= buildInfo
-
 buildInfoKeys := Seq[BuildInfoKey](
   name,
   BuildInfoKey.constant("gitCommitId", Option(System.getenv("BUILD_VCS_NUMBER")) getOrElse(try {
@@ -21,7 +17,7 @@ buildInfoKeys := Seq[BuildInfoKey](
 
 buildInfoPackage := "app"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, BuildInfoPlugin)
 
 resolvers ++= Seq(
   // Resolver.mavenLocal,
