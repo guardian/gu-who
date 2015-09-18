@@ -46,7 +46,8 @@ Actions taken by the gu-who bot...
 
 * Opens a GitHub issue against each user that doesn't pass the requirements
 * Conceals organisation membership for users which don't comply with the requirements
-* After a grace period, removes insecure users from the org
+* After a grace period of [1 month](https://github.com/guardian/gu-who/blob/master/app/lib/TerminationSchedule.scala#L28)
+  removes insecure users from the org - a final warning is given 1 week before removal.
 
 
 What's your logo?
