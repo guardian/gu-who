@@ -16,6 +16,12 @@ $ cd gu-who
 $ git push git@heroku.com:gu-who-nologo.git master
 ```
 
+Set a Heroku config var (required for Scala Play framework apps), APPLICATION_SECRET (more details [here](https://playframework.com/documentation/2.4.x/ApplicationSecret)):
+
+```
+$ heroku config:set APPLICATION_SECRET=somethingreallylongandobscure?ABC:jfk
+```
+
 After Heroku deploy completes, your instance of _gu:who_ should be available:
 
 https://gu-who-nologo.herokuapp.com/
