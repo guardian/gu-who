@@ -13,6 +13,10 @@
     "GITHUB_APP_CLIENT_SECRET": {
       "description": "The Client Secret credentials for GitHub OAuth V2.",
       "required": false
+    },
+    "APPLICATION_SECRET": {
+      "description": "Random text to use as a crypto seed for signing session cookies. See https://www.playframework.com/documentation/2.4.x/ApplicationSecret",
+      "required": true
     }
   }
 }
