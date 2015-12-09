@@ -32,7 +32,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "bootstrap" % "3.3.5",
   "com.adrianhurt" %% "play-bootstrap3" % "0.4.4-P24",
   "com.madgag" %% "play-git-hub" % "2.3",
-  "com.github.nscala-time" %% "nscala-time" % "2.2.0",
+  "com.github.nscala-time" %% "nscala-time" % "2.6.0",
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1",
   "com.madgag.scala-git" %% "scala-git-test" % "3.3" % "test",
   "org.scalatestplus" %% "play" % "1.4.0-M4" % "test"
