@@ -93,7 +93,7 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
 
       if (now > terminationDate) MembershipTermination(problems) else {
 
-        val userShouldBeWarned = now > (terminationDate - schedule.finalWarningPeriod)
+        val userShouldBeWarned = problems.nonEmpty && now > (terminationDate - schedule.finalWarningPeriod)
 
         val userHasBeenWarned = issue.getLabels.exists(_.getName == schedule.warnedLabel)
 
