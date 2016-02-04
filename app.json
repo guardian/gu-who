@@ -15,6 +15,7 @@
       "required": false
     },
     "APPLICATION_SECRET": {
+      "generator": "secret",
       "description": "Random text to use as a crypto seed for signing session cookies. See https://www.playframework.com/documentation/2.4.x/ApplicationSecret",
       "required": true
     }
