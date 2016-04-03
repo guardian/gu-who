@@ -1,4 +1,4 @@
-@(update: lib.MemberUserUpdate)(implicit organ: org.kohsuke.github.GHOrganization)
+@(update: lib.MemberUserUpdate)(implicit organ: com.madgag.scalagithub.model.Org)
 @import lib.Implicits._
 
 @if(update.userShouldReceiveFinalWarning) {

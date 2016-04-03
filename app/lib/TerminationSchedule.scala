@@ -16,9 +16,15 @@
 
 package lib
 
+import java.time.ZonedDateTime
+import java.time.temporal.{ChronoUnit, Temporal, TemporalUnit, TemporalAmount}
+import java.util
+
+import org.joda.time.DurationFieldType
 import org.joda.time.format.PeriodFormatterBuilder
 import com.github.nscala_time.time.Imports._
-import org.kohsuke.github.GHIssue
+import com.madgag.time.Implicits._
+import com.madgag.scalagithub.model.Issue
 import TerminationSchedule._
 
 object TerminationSchedule {
@@ -38,10 +44,37 @@ object TerminationSchedule {
     .toFormatter()
 }
 
+object Foo {
+  implicit def jodaDurationFieldType2javaTemporalUnit(jdft: DurationFieldType) =
+    ChronoUnit.valueOf(jdft.getName.capitalize)
+
+  implicit def jodaPeriod2javaTemporalAmount(jodaPeriod: org.joda.time.Period) = {
+    new TemporalAmount {
+      override def addTo(temporal: Temporal) = {
+        temporal match {
+          case zdt: ZonedDateTime => for {
+            fieldType <- jodaPeriod.getFieldTypes
+          } {
+            zdt.plus(jodaPeriod.get(fieldType), fieldType)
+          }
+        }
+        temporal
+      }
+
+      override def get(unit: TemporalUnit): Long = ???
+
+      override def subtractFrom(temporal: Temporal): Temporal = ???
+
+      override def getUnits: util.List[TemporalUnit] = ???
+
+    }
+  }
+}
+
 case class TerminationSchedule(tolerancePeriod: Period, finalWarningPeriod: Period) {
   lazy val warnedLabel: String = "Warned"+LabelPeriodFormatter.print(finalWarningPeriod)
 
-  def terminationDateFor(issue: GHIssue) =
-    Seq(EarliestTerminationDate, issue.getCreatedAt.getTime.toDateTime + tolerancePeriod).max
+  def terminationDateFor(issue: Issue) =
+    Seq(EarliestTerminationDate, tolerancePeriod.from(issue.created_at.get)).max
 
 }

@@ -1,5 +1,5 @@
-@(user: org.kohsuke.github.GHUser, update: lib.MembershipTermination)(implicit organ: org.kohsuke.github.GHOrganization)
+@(user: com.madgag.scalagithub.model.User, update: lib.MembershipTermination)(implicit organ: com.madgag.scalagithub.model.Org)
 
-Removing @@@(user.getLogin) from organisation. These were the outstanding requirements:
+Removing @user.atLogin from organisation. These were the outstanding requirements:
 
 @problemList(update.problems)

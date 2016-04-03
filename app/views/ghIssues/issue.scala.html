@@ -1,7 +1,7 @@
-@(user: org.kohsuke.github.GHUser, organ: org.kohsuke.github.GHOrganization, accountRequirements: Iterable[lib.AccountRequirement])
+@(user: com.madgag.scalagithub.model.User, organ: com.madgag.scalagithub.model.Org, accountRequirements: Iterable[lib.AccountRequirement])
 @import lib.Implicits._
 
-Hi @user.atLogin - you're a member of [@{organ.displayName}](https://github.com/@{organ.getLogin})'s organisation on GitHub, but our audit-bot has noticed your GitHub account isn't fully set up to meet the standards we need.
+Hi @user.atLogin - you're a member of [@{organ.displayName}](https://github.com/@{organ.login})'s organisation on GitHub, but our audit-bot has noticed your GitHub account isn't fully set up to meet the standards we need.
 
 If you're no longer supposed to be a member of the organisation, please use your [GitHub organisation settings](https://github.com/settings/organizations) page to leave.
 

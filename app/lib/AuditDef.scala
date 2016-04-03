@@ -16,60 +16,67 @@
 
 package lib
 
-import com.github.nscala_time.time.Imports._
-import com.madgag.github.GitHubCredentials
+import com.madgag.scalagithub.GitHub
+import GitHub._
+import com.madgag.scalagithub.model.{User, Org}
 import lib.Implicits._
-import org.joda.time.DateTime
 
-import scala.collection.convert.wrapAsScala._
+import scala.concurrent.Future
 import scalax.file.ImplicitConversions._
 import scalax.file.Path
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object AuditDef {
 
   val parentWorkDir = Path.fromString("/tmp") / "gu-who" / "working-dir"
 
-  def safelyCreateFor(orgName: String, ghCreds: GitHubCredentials) = {
-    val org = ghCreds.conn().getOrganization(orgName)
-    AuditDef(org.getLogin, ghCreds)
+  def safelyCreateFor(orgName: String)(implicit github: GitHub) = {
+    for {
+      org <- github.getOrg(orgName)
+      bot <- github.getUser()
+      botIsMemberOfOrg <- org.members.check(bot.login)
+      publicMembers: Seq[User] <- org.publicMembers.list().all()
+      publicMembersBlah <- Future.find(publicMembers.map { u:User => u.reFetch() })
+    } yield {
+      def ensureSeemsLegit() = {
+        require(botIsMemberOfOrg, s"Supplied bot account ${bot.atLogin} must be a member of ${org.atLogin}")
+
+        lazy val publicOldMemberReqSummary =
+          s"""
+             |The organisation must have at least one public member whose GitHub account is over 3 months old.
+             |If your account is over 3 months old, please go to ${org.membersAdminUrl}
+
+             |and follow the 'make public' link against your user name. See also:
+             |https://help.github.com/articles/publicizing-or-concealing-organization-membership
+       """
+
+            .
+              stripMargin
+
+        require(
+          publicMembers.nonEmpty,
+          s"Organisation ${org.atLogin} has no *public* members.$publicOldMemberReqSummary")
+        //      require(publicMembers.exists(_.created_at.exists(_ < DateTime.now - 3.months)),
+        //        s"Organisation ${org.atLogin} has ${publicMembers.size}" +
+
+
+        //           "public members, but none of those GitHub accounts are over 3 months old.$publicOldMemberReqSummary")
+        //    }
+      }
+
+
+      AuditDef(bot, org, github)
+    }
   }
 }
 
-case class AuditDef(orgLogin: String, ghCreds: GitHubCredentials) {
+case class AuditDef(bot: User, org: Org, github: GitHub) {
 
-  val workingDir = AuditDef.parentWorkDir / orgLogin.toLowerCase
+  val workingDir = AuditDef.parentWorkDir / org.login.toLowerCase
 
   workingDir.mkdirs()
 
-  lazy val (org, bot) = {
-    val c = ghCreds.conn()
+  // require(bot.isMemberOf(org))
 
-    val org = c.getOrganization(orgLogin)
-
-    val bot = c.getMyself
-
-    require(bot.isMemberOf(org))
-
-    (org, bot)
-  }
-
-  def ensureSeemsLegit() = {
-    require(bot.isMemberOf(org), s"Supplied bot account ${bot.atLogin} must be a member of ${org.atLogin}")
-
-    val publicMembers = org.listPublicMembers.toStream
-
-    lazy val publicOldMemberReqSummary =
-      s"""
-      |The organisation must have at least one public member whose GitHub account is over 3 months old.
-      |If your account is over 3 months old, please go to ${org.membersAdminUrl}
-      |and follow the 'make public' link against your user name. See also:
-      |https://help.github.com/articles/publicizing-or-concealing-organization-membership
-       """.stripMargin
-
-    require(publicMembers.nonEmpty,
-      s"Organisation ${org.atLogin} has no *public* members.$publicOldMemberReqSummary")
-    require(publicMembers.exists(_.createdAt < DateTime.now - 3.months),
-      s"Organisation ${org.atLogin} has ${publicMembers.size} public members, but none of those GitHub accounts are over 3 months old.$publicOldMemberReqSummary")
-  }
 
 }

@@ -16,7 +16,7 @@
 
 package lib
 
-import org.kohsuke.github.{GHOrganization, GHUser, GHIssue}
+import com.madgag.scalagithub.model._
 import collection.convert.wrapAll._
 import Implicits._
 import org.joda.time.DateTime

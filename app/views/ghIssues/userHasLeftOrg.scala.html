@@ -1,4 +1,4 @@
-@(organ: org.kohsuke.github.GHOrganization, user: org.kohsuke.github.GHUser)
+@(organ: com.madgag.scalagithub.model.Org, user: com.madgag.scalagithub.model.User)
 @import lib.Implicits._
 
-Closing this issue, as @@@(user.getLogin) has left the @(organ.displayName) organisation.
+Closing this issue, as @user.atLogin has left the @(organ.displayName) organisation.

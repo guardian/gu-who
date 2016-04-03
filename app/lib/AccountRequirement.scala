@@ -16,6 +16,7 @@
 
 package lib
 
+import com.madgag.scalagithub.model.Org
 import org.kohsuke.github.{GHOrganization, GHUser}
 import scala.util.{Success, Try}
 import Implicits._
@@ -59,13 +60,13 @@ object SponsorRequirement extends AccountRequirement {
 
   override val issueLabel = "Sponsor"
 
-  override def fixSummary(implicit org: GHOrganization) =
+  override def fixSummary(implicit org: Org) =
     "Get a pull request opened to add your username to our " +
-      s"[users.txt](https://github.com/${org.getLogin}/people/blob/master/users.txt) file " +
+      s"[users.txt](https://github.com/${org.login}/people/blob/master/users.txt) file " +
       s"_- ideally, a Tech Lead or Dev Manager at ${org.displayName} should open this request for you_."
 
   def userEvaluatorFor(orgSnapshot: OrgSnapshot) = Success(new UserEvaluator {
-    def isSatisfiedBy(user: GHUser) = orgSnapshot.sponsoredUserLoginsLowerCase.contains(user.getLogin.toLowerCase)
+    def isSatisfiedBy(user: GHUser) = orgSnapshot.sponsoredUserLoginsLowerCase.contains(user.login.toLowerCase)
     def appliesTo(user: GHUser) = true
   })
 }

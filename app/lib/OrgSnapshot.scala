@@ -16,15 +16,15 @@
 
 package lib
 
+import com.madgag.scalagithub.GitHub
 import lib.Implicits._
-import org.kohsuke.github._
 import play.api.Logger
 
-import scala.collection.convert.wrapAsScala._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.util.{Failure, Success, Try}
 import scalax.file.ImplicitConversions._
+import GitHub._
 
 object OrgSnapshot {
   
@@ -34,38 +34,38 @@ object OrgSnapshot {
     val conn = auditDef.ghCreds.conn()
 
     val usersF = Future {
-      org.listMembers.map { u => conn.getUser(u.getLogin) }.toSet
-    } flatMap {
-      Future.traverse(_)(u => Future { conn.getUser(u.getLogin) })
-    } andThen { case us => Logger.info(s"User count: ${us.map(_.size)}") }
+      org.members.list().all().map(_.toSet) andThen {
+        case us => Logger.info(s"User count: ${us.map(_.size)}")
+      }
 
-    val sponsoredUserLoginsF = Future {
-      PeopleRepo.getSponsoredUserLogins(
-        auditDef.workingDir,
-        peopleRepo.gitHttpTransportUrl,
-        Some(auditDef.ghCreds.git)
-      )
-    }
+          val sponsoredUserLoginsF = Future {
+            PeopleRepo.getSponsoredUserLogins(
+              auditDef.workingDir,
+              peopleRepo.gitHttpTransportUrl,
+              Some(auditDef.ghCreds.git)
+            )
+          }
 
-    val botUsersF: Future[Set[GHUser]] = Future {
-      org.botsTeamOpt.toSeq.flatMap(_.getMembers.toSeq).toSet
-    } andThen { case us => Logger.info(s"bots team count: ${us.map(_.size)}") }
+          val botUsersF: Future[Set[GHUser]] = Future {
+            org.botsTeamOpt.toSeq.flatMap(_.getMembers.toSeq).toSet
+          } andThen { case us => Logger.info(s"bots team count: ${us.map(_.size)}") }
 
-    val twoFactorAuthDisabledUsersF = Future {
-      org.listMembersWithFilter("2fa_disabled").asList().toSet
-    } andThen { case us => Logger.info(s"2fa_disabled count: ${us.map(_.size)}") }  
+          val twoFactorAuthDisabledUsersF = Future {
+            org.listMembersWithFilter("2fa_disabled").asList().toSet
+          } andThen { case us => Logger.info(s"2fa_disabled count: ${us.map(_.size)}") }
 
-    val openIssuesF = Future {
-      peopleRepo.getIssues(GHIssueState.OPEN).toSet.filter(_.getUser==auditDef.bot)
-    } andThen { case is => Logger.info(s"Open issue count: ${is.map(_.size)}") }
+          val openIssuesF = Future {
+            peopleRepo.getIssues(GHIssueState.OPEN).toSet.filter(_.getUser==auditDef.bot)
+          } andThen { case is => Logger.info(s"Open issue count: ${is.map(_.size)}") }
 
-    for {
-      users <- usersF
-      sponsoredUserLogins <- sponsoredUserLoginsF
-      twoFactorAuthDisabledUsers <- twoFactorAuthDisabledUsersF.trying
-      openIssues <- openIssuesF
-      botUsers <- botUsersF
-    } yield OrgSnapshot(org, users, botUsers, sponsoredUserLogins, twoFactorAuthDisabledUsers, openIssues)
+          for {
+            users <- usersF
+            sponsoredUserLogins <- sponsoredUserLoginsF
+            twoFactorAuthDisabledUsers <- twoFactorAuthDisabledUsersF.trying
+            openIssues <- openIssuesF
+            botUsers <- botUsersF
+          } yield OrgSnapshot(org, users, botUsers, sponsoredUserLogins, twoFactorAuthDisabledUsers, openIssues)
+      }
   }
 }
 

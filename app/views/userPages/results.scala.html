@@ -17,7 +17,7 @@
             } else {
                 <h2>Your audit is complete</h2>
                 <div class="alert alert-@if(orgSnapshot.problemUsersExist) {warning} else {success}">
-                    <p>There are currently <a href="https://github.com/@auditDef.org.getLogin/people/issues/created_by/@auditDef.bot.getLogin?state=open"><strong>@orgSnapshot.usersWithProblemsCount</strong> users</a>
+                    <p>There are currently <a href="https://github.com/@auditDef.org.login/people/issues/created_by/@auditDef.bot.login?state=open"><strong>@orgSnapshot.usersWithProblemsCount</strong> users</a>
                         in @auditDef.org.displayName's organisation that don't meet requirements.
                     </p>
                 </div>
@@ -25,12 +25,12 @@
 
             <p>You can re-run this process, and update the associated issues, by calling our endpoint directly:</p>
 
-            <code>curl -X POST -H "Csrf-Token: nocheck" -H "Authorization: token {{ YOUR_GITHUB_API_KEY }}" http://@req.host/audit/@auditDef.org.getLogin</code>
+            <code>curl -X POST -H "Csrf-Token: nocheck" -H "Authorization: token {{ YOUR_GITHUB_API_KEY }}" http://@req.host/audit/@auditDef.org.login</code>
 
             <p>...or use this POST endpoint for a GitHub <a href="https://github.com/blog/1933-introducing-organization-webhooks">organisation webhook</a>
             (set to fire on 'Membership' events):</p>
 
-            <code>http://@req.host/audit/@auditDef.org.getLogin?access_token={{ YOUR_GITHUB_API_KEY }}</code>
+            <code>http://@req.host/audit/@auditDef.org.login?access_token={{ YOUR_GITHUB_API_KEY }}</code>
 
 
             <p>Your <a href="https://help.github.com/articles/creating-an-access-token-for-command-line-use">GitHub API</a>

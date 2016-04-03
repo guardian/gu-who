@@ -1,4 +1,4 @@
-@(requirements: Traversable[lib.AccountRequirement])(implicit organ: org.kohsuke.github.GHOrganization)
+@(requirements: Traversable[lib.AccountRequirement])(implicit organ: com.madgag.scalagithub.model.Org)
 
 @for(requirement<-requirements) {
 * @requirement.fixSummary(organ)

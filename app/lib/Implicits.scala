@@ -16,14 +16,13 @@
 
 package lib
 
-import org.kohsuke.github._
-import play.api.Logger
-import collection.convert.wrapAsScala._
-import scala.util.{Success, Try}
 import com.github.nscala_time.time.Imports._
+import com.madgag.scalagithub.model.{Org, Team}
+import play.api.Logger
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
-import ExecutionContext.Implicits.global
-import org.kohsuke.github.GHOrganization.Permission
+import scala.util.{Success, Try}
 
 object Implicits {
   implicit class RichFuture[S](f: Future[S]) {
@@ -34,64 +33,64 @@ object Implicits {
     }
   }
 
-  implicit class RichIssue(issue: GHIssue) {
-    lazy val assignee = Option(issue.getAssignee)
+//  implicit class RichIssue(issue: GHIssue) {
+//    lazy val assignee = Option(issue.getAssignee)
+//
+//    lazy val labelNames = issue.getLabels.map(_.getName)
+//  }
 
-    lazy val labelNames = issue.getLabels.map(_.getName)
-  }
+//  implicit class RichOrg(org: Org) {
+//
+////    lazy val membersAdminUrl = s"https://github.com/orgs/${org.login}/members"
+//
+//    lazy val peopleRepo = org.getRepository("people")
+//
+//    lazy val teamsByName: Map[String, Team] = org.getTeams().toMap
+//
+//    lazy val allTeamOpt = teamsByName.get("all")
+//
+//    lazy val allTeam =  {
+//      val team = allTeamOpt.getOrElse(createAllTeam)
+//      Logger.info(s"'${team.getName}' team : permission=${team.getPermission} people-repo-access=${team.getRepositories.contains("people")}")
+//      team
+//    }
+//
+//    lazy val botsTeamOpt = teamsByName.get("bots")
+//
+//    def testMembership(user: GHUser): Boolean = {
+//      if (user.isMemberOf(allTeam)) true else {
+//        val orgMember = user.isMemberOf(org)
+//        Logger.info(s"user ${user.atLogin} NOT in 'all' team. orgMember=$orgMember")
+//        if (orgMember) { allTeam.add(user) }
+//        orgMember
+//      }
+//    }
+//
+//    def createAllTeam: Team = {
+//      Logger.info(s"Creating 'all' team for ${org.atLogin}")
+//      val team = org.createTeam("all", Permission.PULL)
+//      team.add(peopleRepo)
+//      team
+//    }
+//  }
 
-  implicit class RichOrg(org: GHOrganization) {
-
-    lazy val membersAdminUrl = s"https://github.com/orgs/${org.getLogin}/members"
-
-    lazy val peopleRepo = org.getRepository("people")
-
-    lazy val teamsByName: Map[String, GHTeam] = org.getTeams().toMap
-
-    lazy val allTeamOpt = teamsByName.get("all")
-
-    lazy val allTeam =  {
-      val team = allTeamOpt.getOrElse(createAllTeam)
-      Logger.info(s"'${team.getName}' team : permission=${team.getPermission} people-repo-access=${team.getRepositories.contains("people")}")
-      team
-    }
-
-    lazy val botsTeamOpt = teamsByName.get("bots")
-
-    def testMembership(user: GHUser): Boolean = {
-      if (user.isMemberOf(allTeam)) true else {
-        val orgMember = user.isMemberOf(org)
-        Logger.info(s"user ${user.getLogin} NOT in 'all' team. orgMember=${orgMember}")
-        if (orgMember) { allTeam.add(user) }
-        orgMember
-      }
-    }
-
-    def createAllTeam: GHTeam = {
-      Logger.info(s"Creating 'all' team for ${org.atLogin}")
-      val team = org.createTeam("all", Permission.PULL)
-      team.add(peopleRepo)
-      team
-    }
-  }
-
-  implicit class RichTeam(team: GHTeam) {
-    def ensureHasMember(user: GHUser) {
-      if (!team.getMembers.contains(user)) {
-        team.add(user)
-      }
-    }
-  }
+//  implicit class RichTeam(team: GHTeam) {
+//    def ensureHasMember(user: GHUser) {
+//      if (!team.getMembers.contains(user)) {
+//        team.add(user)
+//      }
+//    }
+//  }
 
   val dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ")
-
-  implicit class RichPerson(person: GHPerson) {
-
-    lazy val createdAt = new DateTime(person.getCreatedAt)
-
-    lazy val atLogin = s"@${person.getLogin}"
-
-    lazy val displayName = Option(person.getName).filter(_.nonEmpty).getOrElse(atLogin)
-
-  }
+//
+//  implicit class RichPerson(person: GHPerson) {
+//
+//    lazy val createdAt = new DateTime(person.getCreatedAt)
+//
+//    lazy val atLogin = s"@${person.login}"
+//
+//    lazy val displayName = Option(person.getName).filter(_.nonEmpty).getOrElse(atLogin)
+//
+//  }
 }
