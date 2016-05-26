@@ -50,12 +50,16 @@ object Application extends Controller {
     new Dogpile[OrgSnapshot](
       for (orgSnapshot <- OrgSnapshot(auditDef)) yield {
         Logger.info(s"availableRequirementEvaluators=${orgSnapshot.availableRequirementEvaluators} ${orgSnapshot.orgUserProblemStats}")
-        orgSnapshot.createIssuesForNewProblemUsers()
 
-        orgSnapshot.updateExistingAssignedIssues()
+        if (orgSnapshot.soManyUsersHaveProblemsThatPerhapsTheGitHubAPIIsBroken) {
+          Logger.error(s"usersWithProblemsCount=${orgSnapshot.usersWithProblemsCount} - it's possible the GitHub API is broken, so no action will be taken, to avoid spamming users")
+        } else {
+          orgSnapshot.createIssuesForNewProblemUsers()
 
-        orgSnapshot.closeUnassignedIssues()
+          orgSnapshot.updateExistingAssignedIssues()
 
+          orgSnapshot.closeUnassignedIssues()
+        }
         orgSnapshot
       }
     )
