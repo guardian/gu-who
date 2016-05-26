@@ -100,6 +100,10 @@ case class OrgSnapshot(
 
   lazy val usersWithProblemsCount = orgUserProblemsByUser.values.count(_.problems.nonEmpty)
 
+  lazy val proportionOfUsersWithProblems = usersWithProblemsCount.toFloat / users.size
+
+  lazy val soManyUsersHaveProblemsThatPerhapsTheGitHubAPIIsBroken = proportionOfUsersWithProblems > 0.9
+
   lazy val problemUsersExist = usersWithProblemsCount > 0
 
   lazy val orgUserProblemStats = orgUserProblemsByUser.values.map(_.problems.size).groupBy(identity).mapValues(_.size)

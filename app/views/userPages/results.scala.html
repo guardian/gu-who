@@ -5,12 +5,24 @@
 
     <div class="row">
         <div class="col-md-12">
-            <h2>Your audit is complete</h2>
-            <div class="alert alert-@if(orgSnapshot.problemUsersExist) {warning} else {success}">
-            <p>There are currently <a href="https://github.com/@auditDef.org.getLogin/people/issues/created_by/@auditDef.bot.getLogin?state=open"><strong>@orgSnapshot.usersWithProblemsCount</strong> users</a>
-                in @auditDef.org.displayName's organisation that don't meet requirements.
-            </p>
-            </div>
+            @if(orgSnapshot.soManyUsersHaveProblemsThatPerhapsTheGitHubAPIIsBroken) {
+                <div class="alert alert-danger">
+                    <h2>Possible problem with the GitHub API...</h2>
+                    <p>The audit found <strong>@orgSnapshot.usersWithProblemsCount</strong> users
+                        in @auditDef.org.displayName's organisation that don't meet requirements - this is such a large
+                        proprortion of your organisation that no action will be taken by gu:who - it's possible the GitHub
+                        API is currently broken.
+                    </p>
+                </div>
+            } else {
+                <h2>Your audit is complete</h2>
+                <div class="alert alert-@if(orgSnapshot.problemUsersExist) {warning} else {success}">
+                    <p>There are currently <a href="https://github.com/@auditDef.org.getLogin/people/issues/created_by/@auditDef.bot.getLogin?state=open"><strong>@orgSnapshot.usersWithProblemsCount</strong> users</a>
+                        in @auditDef.org.displayName's organisation that don't meet requirements.
+                    </p>
+                </div>
+            }
+
             <p>You can re-run this process, and update the associated issues, by calling our endpoint directly:</p>
 
             <code>curl -X POST -H "Csrf-Token: nocheck" -H "Authorization: token {{ YOUR_GITHUB_API_KEY }}" http://@req.host/audit/@auditDef.org.getLogin</code>
