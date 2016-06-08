@@ -49,6 +49,10 @@ Actions taken by the gu-who bot...
 * After a grace period of [1 month](https://github.com/guardian/gu-who/blob/master/app/lib/TerminationSchedule.scala#L28)
   removes insecure users from the org - a final warning is given 1 week before removal.
 
+Deployment
+----------
+
+* [Heroku](heroku.md) 
 
 What's your logo?
 -----------------
@@ -71,5 +75,3 @@ ie **Passwords, Credentials** & other private or unwanted data.
 
 You might also be interested in [Prout](https://www.theguardian.com/info/developer-blog/2015/feb/03/prout-is-your-pull-request-out),
 to tell you when your pull requests are reaching Production.
-
-\
