@@ -26,7 +26,12 @@ After Heroku deploy completes, your instance of _gu:who_ should be available:
 
 https://gu-who-nologo.herokuapp.com/
 
-At this point, pasting a valid GitHub access token into _gu:who_ and executing an audit will work, end to end. However, if you want to use the slightly more convenient 'Log In via GitHub` method [to authenticate via OAuth V2](https://developer.github.com/v3/oauth/), you'll need to register your instance of _gu:who_ as an application in your [GitHub settings](https://github.com/settings/applications/new). 
+At this point, pasting a valid GitHub access token into _gu:who_ and executing an audit will work, end to end. However, if you want to use the slightly more convenient 'Log In via GitHub` method [to authenticate via OAuth V2](https://developer.github.com/v3/oauth/), you'll need to register your instance of _gu:who_ as an application in your [GitHub settings](https://github.com/settings/applications/new).
+
+Application name: `gu:who`
+Homepage URL: `https://gu-who-nologo.herokuapp.com/` (replace with your own URL)
+Application description: `gu:who is an audit bot for the membership of our GitHub Organisation`
+Authorization callback URL: `https://gu-who-nologo.herokuapp.com/oauth/callback`
 
 You now need to tell your Heroku instance the Client ID & Client Secret credentials, which will be visible in your GitHub application settings. The Heroku command is just:
 
