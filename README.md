@@ -53,6 +53,7 @@ Local Deployment
 --------
 You can start a local application at http://localhost:9000 with the command:
 ```
+$ export APPLICATION_SECRET=<secret>
 $ sbt start
 ``` 
 
