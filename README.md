@@ -49,7 +49,14 @@ Actions taken by the gu-who bot...
 * After a grace period of [1 month](https://github.com/guardian/gu-who/blob/master/app/lib/TerminationSchedule.scala#L28)
   removes insecure users from the org - a final warning is given 1 week before removal.
 
-Deployment
+Local Deployment
+--------
+You can start a local application at http://localhost:9000 with the command:
+```
+$ sbt start
+``` 
+
+Remote Deployment
 ----------
 
 * [Heroku](heroku.md) 
