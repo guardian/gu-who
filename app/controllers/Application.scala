@@ -73,7 +73,7 @@ object Application extends Controller {
 
   def storeApiKey() = Action(parse.form(apiKeyForm)) { implicit req =>
     val accessToken = req.body
-    Redirect("/choose-your-org").withSession(AccessToken.SessionKey -> accessToken)
+    Redirect("/guwho/choose-your-org").withSession(AccessToken.SessionKey -> accessToken)
   }
 
   def chooseYourOrg = GitHubAuthenticatedAction { implicit req =>

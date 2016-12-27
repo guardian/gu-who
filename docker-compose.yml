@@ -1,0 +1,6 @@
+gu_who:
+  build: .
+  ports:
+    - "9000:9000"
+  tty: true
+  command: bash -c '/src/target/universal/stage/bin/gu-who'

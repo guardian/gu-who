@@ -2,12 +2,12 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-POST        /audit/:org             controllers.Application.audit(org: String)
-GET         /                       controllers.Application.index()
-GET         /oauth/callback         controllers.Auth.oauthCallback(code: String)
-GET         /choose-your-org        controllers.Application.chooseYourOrg()
-POST        /api-key                controllers.Application.storeApiKey()
+POST        /guwho/audit/:org             controllers.Application.audit(org: String)
+GET         /guwho                  controllers.Application.index()
+GET         /guwho/oauth/callback         controllers.Auth.oauthCallback(code: String)
+GET         /guwho/choose-your-org        controllers.Application.chooseYourOrg()
+POST        /guwho/api-key                controllers.Application.storeApiKey()
 
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file           controllers.Assets.at(path="/public", file)
+GET         /guwho/assets/*file           controllers.Assets.at(path="/public", file)
