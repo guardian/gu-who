@@ -67,7 +67,7 @@ What's your logo?
 
 Well, obviously, it would be the ridiculously suitable 
 **[Riddlocat](https://octodex.github.com/images/riddlocat.png)** by [@cameronmcefee](https://github.com/cameronmcefee), but we can't use
-it for legal reasons laid out so eloquently by the Riddlocat _himself_
+it for legal reasons laid out
 on the [GitHub Octodex FAQ](https://octodex.github.com/faq/index.html).
 
 You'll just have to imagine the logo there.
