@@ -13,7 +13,7 @@ Create a new Heroku app (eg `gu-who-nologo`), and push a clone of the [`gu:who` 
 ```
 $ git clone https://github.com/guardian/gu-who.git
 $ cd gu-who
-$ git push git@heroku.com:gu-who-nologo.git master
+$ git push git@heroku.com:gu-who-nologo.git main
 ```
 
 Set a Heroku config var (required for Scala Play framework apps), APPLICATION_SECRET (more details [here](https://playframework.com/documentation/2.4.x/ApplicationSecret)):
