@@ -16,7 +16,7 @@
             @helper.form(action = routes.Application.storeApiKey, 'class -> "form") {
             @CSRF.formField
             <div class="input-group">
-                <input type="password" id="apiKey" name="apiKey" value="" size="40" maxlength="40" pattern="[0-9A-Fa-f]{40}" class="form-control input-lg" style="font-family: monospace;">
+                <input type="password" id="apiKey" name="apiKey" value="" size="40" maxlength="255" pattern="[A-Za-z0-9_]{40,255}" class="form-control input-lg" style="font-family: monospace;">
                 <span class="input-group-btn">
                     <button class="btn btn-primary input-lg" type="submit">Go!</button>
                 </span>
