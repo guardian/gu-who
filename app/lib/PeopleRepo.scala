@@ -31,7 +31,7 @@ object PeopleRepo {
 
   val UsernameRegex = """^([\p{Alnum}-]{2,}+)""".r
 
-  def getSponsoredUserLogins(dataDirectory: File, uri: String, credentials: Option[CredentialsProvider] = None): Set[String] = {
+  def getSponsoredUserLogins(dataDirectory: File, uri: String, credentials: Option[CredentialsProvider] = None, defaultBranch: String): Set[String] = {
 
     def invoke[C <: GitCommand[_], R](command: TransportCommand[C, R]): R = {
       command.setTimeout(5)
@@ -51,7 +51,7 @@ object PeopleRepo {
         gitdir.doCreateParents()
         Logger.info("Cloning new Git repo...")
         val cloneCommand =
-          Git.cloneRepository().setBare(true).setDirectory(gitdir).setURI(uri).setBranchesToClone(Seq("master"))
+          Git.cloneRepository().setBare(true).setDirectory(gitdir).setURI(uri).setBranchesToClone(Seq(defaultBranch))
         invoke(cloneCommand).getRepository
       }
     }
@@ -60,7 +60,7 @@ object PeopleRepo {
 
     implicit val reader = repo.newObjectReader()
 
-    Option(repo.resolve("master^{tree}:users.txt")) match {
+    Option(repo.resolve(s"${defaultBranch}^{tree}:users.txt")) match {
       case Some(latestUserFileGitId) =>
         val lines = Resource.fromInputStream(latestUserFileGitId.open.openStream()).lines()
 

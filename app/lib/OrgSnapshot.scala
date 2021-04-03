@@ -43,7 +43,8 @@ object OrgSnapshot {
       PeopleRepo.getSponsoredUserLogins(
         auditDef.workingDir,
         peopleRepo.gitHttpTransportUrl,
-        Some(auditDef.ghCreds.git)
+        Some(auditDef.ghCreds.git),
+        peopleRepo.getDefaultBranch
       )
     }
 
