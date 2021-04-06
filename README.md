@@ -38,7 +38,7 @@ accounts and work out if they should be in your organisation or not:
 
 * **Two-Factor-Auth** enabled (this requirement can be waived for users in the 'bots' team - for instance, for a long-lived CI bot account that may need to be accessed by multiple humans, who would otherwise have to share an authentication token)
 * A **Full Name** set in the user GitHub Profile
-* **Sponsor**: each GitHub username should be in github.com/_your-organization-name_/people/blob/main/users.txt (see an [example](https://github.com/gu-who-demo-org/people/blob/master/users.txt) or read more [details](people-repo.md)) - added by Pull Request by any senior member of the organisation (who, in effect, acts as the 'sponsor' for the user for being in the GitHub Org). The current GitHub admin interface doesn't give any long-term audit trail on how a user came to join an Org, so this file serves that purpose.
+* **Sponsor**: each GitHub username should be in github.com/_your-organization-name_/people/blob/main/users.txt (see an [example](https://github.com/gu-who-demo-org/people/blob/main/users.txt) or read more [details](people-repo.md)) - added by Pull Request by any senior member of the organisation (who, in effect, acts as the 'sponsor' for the user for being in the GitHub Org). The current GitHub admin interface doesn't give any long-term audit trail on how a user came to join an Org, so this file serves that purpose.
 
 
 Actions taken by the gu-who bot...
