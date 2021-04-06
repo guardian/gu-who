@@ -77,7 +77,7 @@ object TwoFactorAuthRequirement extends AccountRequirement {
 
   override def fixSummary(implicit org: GHOrganization) =
     "Enable [two-factor authentication](https://help.github.com/articles/about-two-factor-authentication) " +
-      "in your [GitHub account settings](https://github.com/settings/admin)."
+      "in your [GitHub Account Security settings](https://github.com/settings/security)."
 
   def userEvaluatorFor(orgSnapshot: OrgSnapshot) = for (tfaDisabledUsers <- orgSnapshot.twoFactorAuthDisabledUserLogins) yield
     new UserEvaluator {
