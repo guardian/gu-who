@@ -35,6 +35,6 @@ a more-senior colleague, to create a pull-request to add their GitHub
 username to this file. This is better than just adding usernames in bulk
 (ie without vetting them first), because the person who adds that username
 to that file is _responsible_ for that person being in the organisation-
-and we can see who that is just by using [`git blame`](https://github.com/gu-who-demo-org/people/blame/master/users.txt)
+and we can see who that is just by using [`git blame`](https://github.com/gu-who-demo-org/people/blame/main/users.txt)
 
 
