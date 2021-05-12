@@ -16,6 +16,7 @@
 
 package controllers
 
+
 import com.madgag.playgithub.auth.AuthenticatedSessions.AccessToken
 import lib.Implicits._
 import lib._
@@ -45,16 +46,11 @@ object Application extends Controller {
     }
   }
 
-  def scan(auditDef: AuditDef) =
-    Cache
-      .getOrElse(auditDef.toString) {
-        new Dogpile[OrgSnapshot](
-          for (orgSnapshot <- OrgSnapshot(auditDef)) yield {
-            Logger.info(
-              s"availableRequirementEvaluators=${orgSnapshot.availableRequirementEvaluators} ${orgSnapshot.orgUserProblemStats}"
-            )
+  def scan(auditDef: AuditDef) = Cache.getOrElse(auditDef.toString) {
+    new Dogpile[OrgSnapshot](
+      for (orgSnapshot <- OrgSnapshot(auditDef)) yield {
+        Logger.info(s"availableRequirementEvaluators=${orgSnapshot.availableRequirementEvaluators} ${orgSnapshot.orgUserProblemStats}")
 
-            /*
         if (orgSnapshot.soManyUsersHaveProblemsThatPerhapsTheGitHubAPIIsBroken) {
           Logger.error(s"usersWithProblemsCount=${orgSnapshot.usersWithProblemsCount} - it's possible the GitHub API is broken, so no action will be taken, to avoid spamming users")
         } else {
@@ -64,13 +60,10 @@ object Application extends Controller {
 
           orgSnapshot.closeUnassignedIssues()
         }
-             */
-
-            orgSnapshot
-          }
-        )
+        orgSnapshot
       }
-      .doAtLeastOneMore()
+    )
+  }.doAtLeastOneMore()
 
   def index = Action { implicit req =>
     Ok(views.html.userPages.index(apiKeyForm))
@@ -80,9 +73,7 @@ object Application extends Controller {
 
   def storeApiKey() = Action(parse.form(apiKeyForm)) { implicit req =>
     val accessToken = req.body
-    Redirect("/choose-your-org").withSession(
-      AccessToken.SessionKey -> accessToken
-    )
+    Redirect("/choose-your-org").withSession(AccessToken.SessionKey -> accessToken)
   }
 
   def chooseYourOrg = GitHubAuthenticatedAction { implicit req =>
