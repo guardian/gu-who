@@ -42,6 +42,8 @@ object PeopleRepo {
     def getUpToDateRepo(): Repository = {
       val gitdir = dataDirectory / "people.git"
 
+      Logger.info(s"Using repo with default branch name: $defaultBranch")
+
       if (gitdir.exists) {
         Logger.info("Updating Git repo with fetch...")
         val repo = FileRepositoryBuilder.create(gitdir)
