@@ -1,0 +1,17 @@
+# This action is just a test
+name: Snyk (test)
+
+on: push
+
+jobs:
+  security:
+    uses: guardian/.github/.github/workflows/sbt-node-snyk.yml@main
+    with:
+      DEBUG: true
+      ORG: guardian-test
+      SKIP_NODE: true
+      
+      
+      JAVA_VERSION: 8
+    secrets:
+       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
