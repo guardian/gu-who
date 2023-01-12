@@ -2,21 +2,45 @@ package lib.actions
 
 import com.madgag.playgithub
 import com.madgag.playgithub.auth.AuthenticatedSessions.AccessToken
-import com.madgag.playgithub.auth.AuthenticatedSessions.AccessToken.{FromBasicAuth, FromQueryString, FromSession}
-import controllers.Auth
+import com.madgag.playgithub.auth.AuthenticatedSessions.AccessToken.{FromBasicAuth, FromQueryString, FromSession, Provider}
+import com.madgag.playgithub.auth.GHRequest
+import com.madgag.scalagithub.model.RepoId
+import controllers.{Auth, routes}
+import lib.Bot
+import play.api.mvc.Results.Redirect
+import play.api.mvc.{ActionBuilder, ActionFilter, AnyContent, BodyParser, Result}
 
-import scalax.file.ImplicitConversions._
-import scalax.file.Path
+import scala.concurrent.{ExecutionContext, Future}
 
-object Actions {
+class Actions(
+  bot: Bot,
+  bodyParser: BodyParser[AnyContent]
+)(implicit
+  authClient: com.madgag.playgithub.auth.Client,
+  ec: ExecutionContext
+) {
   private val authScopes = Seq("repo", "write:org")
 
-  implicit val accessTokenProvider = AccessToken.provider(FromBasicAuth, FromQueryString, FromSession)
+  implicit val provider: Provider = AccessToken.provider(FromBasicAuth, FromQueryString)
 
-  implicit val authClient = Auth.authClient
+  val GitHubAuthenticatedAction: ActionBuilder[GHRequest, AnyContent] =
+    com.madgag.playgithub.auth.Actions.gitHubAction(authScopes, bot.workingDir, bodyParser)
 
-  val parentWorkDir = Path.fromString("/tmp") / "gu-who" / "working-dir"
+  def repoAccessFilter(repoId: RepoId): ActionFilter[GHRequest] = new ActionFilter[GHRequest] {
+    def executionContext = ec
 
-  val GitHubAuthenticatedAction = playgithub.auth.Actions.gitHubAction(authScopes, parentWorkDir.toPath)
+    override protected def filter[A](req: GHRequest[A]): Future[Option[Result]] = {
+      for {
+        user <- req.userF
+        userViewOfRepo <- req.gitHub.getRepo(repoId).trying
+      } yield {
+        println(s"******* ${user.atLogin} ${userViewOfRepo.map(r => r.full_name + " " + r.permissions)}")
+        if (userViewOfRepo.isSuccess) None else Some(
+          Redirect(routes.Application.index()).flashing("message" -> s"You can't see a ${repoId.fullName} repo")
+        )
+      }
+    }
+  }
 
+  def repoAuthenticated(repoId: RepoId) = GitHubAuthenticatedAction andThen repoAccessFilter(repoId)
 }

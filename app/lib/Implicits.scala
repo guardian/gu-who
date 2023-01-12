@@ -17,13 +17,16 @@
 package lib
 
 import org.kohsuke.github._
-import play.api.Logger
-import collection.convert.wrapAsScala._
+import play.api.Logging
+
 import scala.util.{Success, Try}
 import com.github.nscala_time.time.Imports._
+
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import org.kohsuke.github.GHOrganization.Permission
+
+import scala.jdk.CollectionConverters._
 
 object Implicits {
   implicit class RichFuture[S](f: Future[S]) {
@@ -37,22 +40,22 @@ object Implicits {
   implicit class RichIssue(issue: GHIssue) {
     lazy val assignee = Option(issue.getAssignee)
 
-    lazy val labelNames = issue.getLabels.map(_.getName)
+    lazy val labelNames = issue.getLabels.asScala.map(_.getName)
   }
 
-  implicit class RichOrg(org: GHOrganization) {
+  implicit class RichOrg(org: GHOrganization) extends Logging {
 
     lazy val membersAdminUrl = s"https://github.com/orgs/${org.getLogin}/members"
 
     lazy val peopleRepo = org.getRepository("people")
 
-    lazy val teamsByName: Map[String, GHTeam] = org.getTeams().toMap
+    lazy val teamsByName: Map[String, GHTeam] = org.getTeams().asScala.toMap
 
     lazy val allTeamOpt = teamsByName.get("all")
 
     lazy val allTeam =  {
       val team = allTeamOpt.getOrElse(createAllTeam)
-      Logger.info(s"'${team.getName}' team : permission=${team.getPermission} people-repo-access=${team.getRepositories.contains("people")}")
+      logger.info(s"'${team.getName}' team : permission=${team.getPermission} people-repo-access=${team.getRepositories.asScala.contains("people")}")
       team
     }
 
@@ -61,14 +64,14 @@ object Implicits {
     def testMembership(user: GHUser): Boolean = {
       if (user.isMemberOf(allTeam)) true else {
         val orgMember = user.isMemberOf(org)
-        Logger.info(s"user ${user.getLogin} NOT in 'all' team. orgMember=${orgMember}")
+        logger.info(s"user ${user.getLogin} NOT in 'all' team. orgMember=${orgMember}")
         if (orgMember) { allTeam.add(user) }
         orgMember
       }
     }
 
     def createAllTeam: GHTeam = {
-      Logger.info(s"Creating 'all' team for ${org.atLogin}")
+      logger.info(s"Creating 'all' team for ${org.atLogin}")
       val team = org.createTeam("all", Permission.PULL)
       team.add(peopleRepo)
       team

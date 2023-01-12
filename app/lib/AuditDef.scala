@@ -18,16 +18,16 @@ package lib
 
 import com.github.nscala_time.time.Imports._
 import com.madgag.github.GitHubCredentials
+import com.madgag.scalagithub.GitHubCredentials
 import lib.Implicits._
 import org.joda.time.DateTime
 
+import java.nio.file.Files
 import scala.collection.convert.wrapAsScala._
-import scalax.file.ImplicitConversions._
-import scalax.file.Path
 
 object AuditDef {
 
-  val parentWorkDir = Path.fromString("/tmp") / "gu-who" / "working-dir"
+  val parentWorkDir = Files.createTempDirectory("gu-who-working-dir")
 
   def safelyCreateFor(orgName: String, ghCreds: GitHubCredentials) = {
     val org = ghCreds.conn().getOrganization(orgName)

@@ -2,42 +2,34 @@ name := "gu-who"
 
 version := "1.0-SNAPSHOT"
 
-scalaVersion := "2.11.12"
+scalaVersion := "2.13.10"
 
 updateOptions := updateOptions.value.withCachedResolution(true)
 
 buildInfoKeys := Seq[BuildInfoKey](
   name,
-  BuildInfoKey.constant("gitCommitId", Option(System.getenv("SOURCE_VERSION")) getOrElse(try {
-    "git rev-parse HEAD".!!.trim
-  } catch {
-    case e: Exception => "unknown"
-  }))
+  "gitCommitId" -> Option(System.getenv("SOURCE_VERSION")).getOrElse("unknown")
 )
 
 buildInfoPackage := "app"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, BuildInfoPlugin)
 
-resolvers ++= Seq(
-  // Resolver.mavenLocal,
-  Resolver.sonatypeRepo("releases")
-)
+resolvers ++= Resolver.sonatypeOssRepos("releases")
 
 libraryDependencies ++= Seq(
-  cache,
   filters,
   ws,
-  "com.typesafe.akka" %% "akka-agent" % "2.3.2",
+  "com.softwaremill.macwire" %% "macros" % "2.5.8" % Provided, // slight finesse: 'provided' as only used for compile
   "org.webjars" % "bootstrap" % "3.3.5",
-  "com.adrianhurt" %% "play-bootstrap3" % "0.4.4-P24",
-  "com.madgag" %% "play-git-hub" % "2.3",
-  "com.github.nscala-time" %% "nscala-time" % "2.6.0",
-  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1",
-  "com.madgag.scala-git" %% "scala-git-test" % "3.3" % "test",
-  "org.scalatestplus" %% "play" % "1.4.0-M4" % "test"
+  "com.adrianhurt" %% "play-bootstrap" % "1.6.1-P28-B3",
+  "com.madgag" %% "play-git-hub" % "5.3",
+  "org.kohsuke" % "github-api" % "1.313",
+  "com.github.nscala-time" %% "nscala-time" % "2.32.0",
+  "com.madgag.scala-git" %% "scala-git-test" % "4.6" % Test,
+  "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
 )     
 
-sources in (Compile,doc) := Seq.empty
+Compile / doc / sources := Seq.empty
 
-publishArtifact in (Compile, packageDoc) := false
+Compile / packageDoc / publishArtifact := false

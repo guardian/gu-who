@@ -20,7 +20,6 @@ import lib.Implicits._
 import org.kohsuke.github._
 import play.api.Logger
 
-import scala.collection.convert.wrapAsScala._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.util.{Failure, Success, Try}
