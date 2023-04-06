@@ -20,10 +20,11 @@ import org.joda.time.format.PeriodFormatterBuilder
 import com.github.nscala_time.time.Imports._
 import org.kohsuke.github.GHIssue
 import TerminationSchedule._
+import com.madgag.scalagithub.model.Issue
 
 object TerminationSchedule {
 
-  val EarliestTerminationDate = new DateTime(2014, 4, 9, 9, 0, DateTimeZone.UTC)
+  val EarliestTerminationDate = java.time.Instant.parse("2014-04-09T09:00:00Z")
 
   val Relaxed = TerminationSchedule(4.weeks, 1.week)
 
@@ -41,7 +42,7 @@ object TerminationSchedule {
 case class TerminationSchedule(tolerancePeriod: Period, finalWarningPeriod: Period) {
   lazy val warnedLabel: String = "Warned"+LabelPeriodFormatter.print(finalWarningPeriod)
 
-  def terminationDateFor(issue: GHIssue) =
-    Seq(EarliestTerminationDate, issue.getCreatedAt.getTime.toDateTime + tolerancePeriod).max
+  def terminationDateFor(issue: Issue) =
+    Seq(EarliestTerminationDate, issue.created_at + tolerancePeriod).max
 
 }

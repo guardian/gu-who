@@ -16,12 +16,14 @@
 
 package lib
 
-import org.kohsuke.github.{GHIssue, GHUser, GHOrganization}
+import org.kohsuke.github.{GHIssue, GHOrganization, GHUser}
 import Implicits._
+
 import collection.convert.wrapAsScala._
 import play.api.Logger
 import views.html._
 import com.github.nscala_time.time.Imports._
+import com.madgag.scalagithub.model.Issue
 
 case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirements: Set[AccountRequirement], problems: Set[AccountRequirement]) {
 
@@ -45,7 +47,7 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
     }
   }
 
-  def updateIssue(issue: GHIssue) {
+  def updateIssue(issue: Issue) {
     val stateUpdate = stateUpdateFor(issue)
     Logger.info(s"Updating issue for ${user.getLogin} with $stateUpdate")
 
@@ -77,38 +79,35 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
     }
   }
   
-  def stateUpdateFor(issue: GHIssue): StateUpdate = {
-    if (org.testMembership(user)) {
-      val oldLabels = issue.getLabels.map(_.getName).toSet
+  def stateUpdateFor(issue: Issue): StateUpdate = if (!org.testMembership(user)) UserHasLeftOrg else {
+    val oldLabels = issue.getLabels.map(_.getName).toSet
 
-      val oldBotLabels = oldLabels.filter(applicableLabels)
+    val oldBotLabels = oldLabels.filter(applicableLabels)
 
-      val oldProblems = oldBotLabels.map(AccountRequirements.RequirementsByLabel)
+    val oldProblems = oldBotLabels.map(AccountRequirements.RequirementsByLabel)
 
-      val schedule = TerminationSchedule.Relaxed
+    val schedule = TerminationSchedule.Relaxed
 
-      val terminationDate = schedule.terminationDateFor(issue)
+    val terminationDate = schedule.terminationDateFor(issue)
 
-      val now = DateTime.now
+    val now = DateTime.now
 
-      if (now > terminationDate) MembershipTermination(problems) else {
+    if (now > terminationDate) MembershipTermination(problems) else {
 
-        val userShouldBeWarned = problems.nonEmpty && now > (terminationDate - schedule.finalWarningPeriod)
+      val userShouldBeWarned = problems.nonEmpty && now > (terminationDate - schedule.finalWarningPeriod)
 
-        val userHasBeenWarned = issue.getLabels.exists(_.getName == schedule.warnedLabel)
+      val userHasBeenWarned = issue.getLabels.exists(_.getName == schedule.warnedLabel)
 
-        val userShouldReceiveFinalWarning = userShouldBeWarned && !userHasBeenWarned
+      val userShouldReceiveFinalWarning = userShouldBeWarned && !userHasBeenWarned
 
-        MemberUserUpdate(
-          oldProblems,
-          problems,
-          terminationDate,
-          orgMembershipWillBeConcealed = problems.nonEmpty && org.hasPublicMember(user),
-          terminationWarning = Some(schedule).filter(_ => userShouldReceiveFinalWarning)
-        )
-      }
-
-    } else UserHasLeftOrg
+      MemberUserUpdate(
+        oldProblems,
+        problems,
+        terminationDate,
+        orgMembershipWillBeConcealed = problems.nonEmpty && org.hasPublicMember(user),
+        terminationWarning = Some(schedule).filter(_ => userShouldReceiveFinalWarning)
+      )
+    }
   }
 }
 

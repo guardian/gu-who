@@ -1,35 +1,45 @@
+import com.gu.riffraff.artifact.BuildInfo
+
 name := "gu-who"
 
 version := "1.0-SNAPSHOT"
 
 scalaVersion := "2.13.10"
 
-updateOptions := updateOptions.value.withCachedResolution(true)
-
-buildInfoKeys := Seq[BuildInfoKey](
-  name,
-  "gitCommitId" -> Option(System.getenv("SOURCE_VERSION")).getOrElse("unknown")
-)
-
 buildInfoPackage := "app"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, BuildInfoPlugin)
+enablePlugins(RiffRaffArtifact, BuildInfoPlugin)
+
+assemblyJarName := s"${name.value}.jar"
+riffRaffPackageType := assembly.value
+riffRaffArtifactResources := Seq(
+  (assembly/assemblyOutputPath).value -> s"${name.value}/${name.value}.jar",
+  file("cdk/cdk.out/GoogleSearchIndexingObservatory-PROD.template.json") -> s"cdk.out/GoogleSearchIndexingObservatory-PROD.template.json",
+  file("cdk/cdk.out/riff-raff.yaml") -> s"riff-raff.yaml"
+)
 
 resolvers ++= Resolver.sonatypeOssRepos("releases")
 
 libraryDependencies ++= Seq(
-  filters,
-  ws,
-  "com.softwaremill.macwire" %% "macros" % "2.5.8" % Provided, // slight finesse: 'provided' as only used for compile
-  "org.webjars" % "bootstrap" % "3.3.5",
-  "com.adrianhurt" %% "play-bootstrap" % "1.6.1-P28-B3",
-  "com.madgag" %% "play-git-hub" % "5.3",
-  "org.kohsuke" % "github-api" % "1.313",
+  "com.madgag" %% "play-git-hub" % "5.4-SNAPSHOT",
+  // "org.kohsuke" % "github-api" % "1.313",
   "com.github.nscala-time" %% "nscala-time" % "2.32.0",
   "com.madgag.scala-git" %% "scala-git-test" % "4.6" % Test,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
-)     
 
-Compile / doc / sources := Seq.empty
+  "com.amazonaws" % "aws-lambda-java-core" % "1.2.2",
+  "com.amazonaws" % "aws-lambda-java-events" % "3.11.0",
+  "net.logstash.logback" % "logstash-logback-encoder" % "7.2",
+  "org.slf4j" % "log4j-over-slf4j" % "2.0.5", //  log4j-over-slf4j provides `org.apache.log4j.MDC`, which is dynamically loaded by the Lambda runtime
+  "ch.qos.logback" % "logback-classic" % "1.4.5",
+  "com.lihaoyi" %% "upickle" % "2.0.0",
+)
 
-Compile / packageDoc / publishArtifact := false
+buildInfoPackage := "ophan.google.indexing.observatory"
+buildInfoKeys := {
+  lazy val buildInfo = BuildInfo(baseDirectory.value)
+  Seq[BuildInfoKey](
+    "buildNumber" -> buildInfo.buildIdentifier,
+    "gitCommitId" -> buildInfo.revision,
+    "buildTime" -> System.currentTimeMillis
+  )
+}

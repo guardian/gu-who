@@ -57,11 +57,6 @@ $ export APPLICATION_SECRET=<secret>
 $ sbt start
 ``` 
 
-Remote Deployment
-----------
-
-* [Heroku](heroku.md) 
-
 What's your logo?
 -----------------
 

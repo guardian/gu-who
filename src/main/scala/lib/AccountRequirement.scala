@@ -16,9 +16,9 @@
 
 package lib
 
-import org.kohsuke.github.{GHOrganization, GHUser}
 import scala.util.{Success, Try}
 import Implicits._
+import com.madgag.scalagithub.model.{Org, User}
 
 object AccountRequirements {
 
@@ -33,25 +33,27 @@ trait AccountRequirement {
 
   trait UserEvaluator {
     val requirement = AccountRequirement.this
-    def isSatisfiedBy(user: GHUser): Boolean
-    def appliesTo(user: GHUser): Boolean
+    def isSatisfiedBy(user: User): Boolean
+    def appliesTo(user: User): Boolean
   }
 
   val issueLabel: String
-  def fixSummary(implicit org: GHOrganization): String
+  def fixSummary(implicit org: Org): String
   def userEvaluatorFor(orgSnapshot: OrgSnapshot): Try[UserEvaluator]
 }
 
 
 object FullNameRequirement extends AccountRequirement {
   override val issueLabel = "FullName"
-  override def fixSummary(implicit org: GHOrganization) =
+  override def fixSummary(implicit org: Org) =
     "Enter a full name in your [GitHub profile](https://github.com/settings/profile)."
 
-  def userEvaluatorFor(orgSnapshot: OrgSnapshot) = Success(new UserEvaluator {
-    def appliesTo(user: GHUser) = true
-    def isSatisfiedBy(user: GHUser) = Option(user.getName()).map(_.length > 1).getOrElse(false)
+  private val userEvaluator = Success(new UserEvaluator {
+    def appliesTo(user: User) = true
+    def isSatisfiedBy(user: User): Boolean = user.name.exists(_.length > 1)
   })
+
+  def userEvaluatorFor(orgSnapshot: OrgSnapshot): Try[UserEvaluator] = userEvaluator
 }
 
 // requires a 'users.txt' file in the people repo
@@ -59,14 +61,14 @@ object SponsorRequirement extends AccountRequirement {
 
   override val issueLabel = "Sponsor"
 
-  override def fixSummary(implicit org: GHOrganization) =
+  override def fixSummary(implicit org: Org) =
     "Get a pull request opened to add your username to our " +
-      s"[users.txt](https://github.com/${org.getLogin}/people/blob/master/users.txt) file " +
+      s"[users.txt](https://github.com/${org.login}/people/blob/master/users.txt) file " +
       s"_- ideally, a Tech Lead or Dev Manager at ${org.displayName} should open this request for you_."
 
-  def userEvaluatorFor(orgSnapshot: OrgSnapshot) = Success(new UserEvaluator {
-    def isSatisfiedBy(user: GHUser) = orgSnapshot.sponsoredUserLoginsLowerCase.contains(user.getLogin.toLowerCase)
-    def appliesTo(user: GHUser) = true
+  def userEvaluatorFor(orgSnapshot: OrgSnapshot): Try[UserEvaluator] = Success(new UserEvaluator {
+    def isSatisfiedBy(user: User) = orgSnapshot.hasSponsorFor(user)
+    def appliesTo(user: User) = true
   })
 }
 
@@ -75,13 +77,14 @@ object TwoFactorAuthRequirement extends AccountRequirement {
 
   override val issueLabel = "TwoFactorAuth"
 
-  override def fixSummary(implicit org: GHOrganization) =
+  override def fixSummary(implicit org: Org) =
     "Enable [two-factor authentication](https://help.github.com/articles/about-two-factor-authentication) " +
       "in your [GitHub Account Security settings](https://github.com/settings/security)."
 
-  def userEvaluatorFor(orgSnapshot: OrgSnapshot) = for (tfaDisabledUsers <- orgSnapshot.twoFactorAuthDisabledUserLogins) yield
-    new UserEvaluator {
-      def isSatisfiedBy(user: GHUser) = !tfaDisabledUsers.contains(user)
-      def appliesTo(user: GHUser) = !orgSnapshot.botUsers.contains(user)
-    }
+  def userEvaluatorFor(orgSnapshot: OrgSnapshot): Try[UserEvaluator] =
+    for (tfaDisabledUsers <- orgSnapshot.twoFactorAuthDisabledUserLogins) yield
+      new UserEvaluator {
+        def isSatisfiedBy(user: User) = !tfaDisabledUsers.contains(user)
+        def appliesTo(user: User): Boolean = !orgSnapshot.botUsers.contains(user)
+      }
 }

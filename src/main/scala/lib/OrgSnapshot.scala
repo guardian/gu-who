@@ -16,44 +16,48 @@
 
 package lib
 
+import akka.stream.Materializer
+import com.gu.who.logging.Logging
+import com.madgag.scalagithub.GitHub.FR
+import com.madgag.scalagithub.commands.CreateComment
+import com.madgag.scalagithub.{GitHub, GitHubCredentials}
+import com.madgag.scalagithub.model.{Issue, Org, Repo, Team, User}
 import lib.Implicits._
-import org.kohsuke.github._
+import lib.gitgithub.RichSource
 import play.api.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.util.{Failure, Success, Try}
-import scalax.file.ImplicitConversions._
 
-object OrgSnapshot {
+object OrgSnapshot extends Logging {
   
-  def apply(auditDef: AuditDef): Future[OrgSnapshot] = {
-    val org = auditDef.org
-    val peopleRepo = org.peopleRepo
-    val conn = auditDef.ghCreds.conn()
+  def apply(auditDef: AuditDef)(implicit
+    github: GitHub,
+    mat: Materializer
+  ): Future[OrgSnapshot] = {
+    val org: Org = ???
+    val peopleRepo: com.madgag.scalagithub.model.Repo = ???
 
-    val usersF = Future {
-      org.listMembers.map { u => conn.getUser(u.getLogin) }.toSet
-    } flatMap {
-      Future.traverse(_)(u => Future { conn.getUser(u.getLogin) })
-    } andThen { case us => Logger.info(s"User count: ${us.map(_.size)}") }
+    // val org = Await.result(github.getOrg(orgName), 4.seconds)
 
-    val sponsoredUserLoginsF = Future {
-      PeopleRepo.getSponsoredUserLogins(
-        auditDef.workingDir,
-        peopleRepo.gitHttpTransportUrl,
-        Some(auditDef.ghCreds.git),
-        peopleRepo.getDefaultBranch
-      )
-    }
+    import lib.gitgithub
 
-    val botUsersF: Future[Set[GHUser]] = Future {
+    val allOrgUsersF: Future[Seq[User]] = org.members.list().all()
+    val usersF = allOrgUsersF flatMap {
+      Future.traverse(_)(u => github.getUser(u.login))
+    } andThen { case us => logger.info(s"User count: ${us.map(_.size)}") }
+
+    val sponsoredUserLoginsF: Future[Set[String]] = PeopleRepo.getSponsoredUserLogins(peopleRepo)
+
+    val botUsersF: Future[Set[User]] = Future {
       org.botsTeamOpt.toSeq.flatMap(_.getMembers.toSeq).toSet
     } andThen { case us => Logger.info(s"bots team count: ${us.map(_.size)}") }
 
-    val twoFactorAuthDisabledUsersF = Future {
-      org.listMembersWithFilter("2fa_disabled").asList().toSet
-    } andThen { case us => Logger.info(s"2fa_disabled count: ${us.map(_.size)}") }  
+    val twoFactorAuthDisabledUsersF =
+      org.members.list(Map("filter" -> "2fa_disabled")).all().map(_.toSet) andThen {
+        case us => logger.info(s"2fa_disabled count: ${us.map(_.size)}")
+      }
 
     val openIssuesF = Future {
       peopleRepo.getIssues(GHIssueState.OPEN).toSet.filter(_.getUser==auditDef.bot)
@@ -70,19 +74,26 @@ object OrgSnapshot {
 }
 
 case class OrgSnapshot(
-  org: GHOrganization,
-  users: Set[GHUser],
-  botUsers: Set[GHUser],
+  org: Org,
+  peopleRepo: Repo,
+  allTeam: Team,
+  botsTeam: Team,
+  users: Set[User],
+  botUsers: Set[User],
   sponsoredUserLogins: Set[String],
-  twoFactorAuthDisabledUserLogins: Try[Set[GHUser]],
-  openIssues: Set[GHIssue]
+  twoFactorAuthDisabledUserLogins: Try[Set[User]],
+  openIssues: Set[Issue]
 ) {
 
-  lazy val sponsoredUserLoginsLowerCase = sponsoredUserLogins.map(_.toLowerCase)
+  lazy val sponsoredUserLoginsLowerCase: Set[String] = sponsoredUserLogins.map(_.toLowerCase)
 
-  private lazy val evaluatorsByRequirement= AccountRequirements.All.map(ar => ar -> ar.userEvaluatorFor(this)).toMap
+  def hasSponsorFor(user: User) = sponsoredUserLoginsLowerCase.contains(user.login.toLowerCase)
 
-  lazy val availableRequirementEvaluators: Iterable[AccountRequirement#UserEvaluator] = evaluatorsByRequirement.collect { case (_, Success(evaluator)) => evaluator }
+  private lazy val evaluatorsByRequirement =
+    AccountRequirements.All.map(ar => ar -> ar.userEvaluatorFor(this)).toMap
+
+  lazy val availableRequirementEvaluators: Iterable[AccountRequirement#UserEvaluator] =
+    evaluatorsByRequirement.collect { case (_, Success(evaluator)) => evaluator }
 
   lazy val requirementsWithUnavailableEvaluators = evaluatorsByRequirement.collect { case (ar, Failure(t)) => ar -> t }
 
@@ -116,13 +127,15 @@ case class OrgSnapshot(
     } orgUserProblems.updateIssue(issue)
   }
 
-  def closeUnassignedIssues() {
+  def closeUnassignedIssues()(implicit gitHub: GitHub): Future[Unit] = {
     for {
-      issue <- openIssues if issue.assignee.isEmpty
+      issue: Issue <- openIssues if issue.assignee.isEmpty
     } {
-      issue.comment(
+      issue.comments2.create(CreateComment(
         "Closing this issue as it's not assigned to any user, so this bot can not process it. " +
-          "Perhaps the user account was deleted?")
+          "Perhaps the user account was deleted?"
+      ))
+
       issue.close()
     }
   }

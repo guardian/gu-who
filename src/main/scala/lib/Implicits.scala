@@ -21,6 +21,7 @@ import play.api.Logging
 
 import scala.util.{Success, Try}
 import com.github.nscala_time.time.Imports._
+import com.madgag.scalagithub.model.{Org, Team, User}
 
 import scala.concurrent._
 import ExecutionContext.Implicits.global
@@ -43,13 +44,9 @@ object Implicits {
     lazy val labelNames = issue.getLabels.asScala.map(_.getName)
   }
 
-  implicit class RichOrg(org: GHOrganization) extends Logging {
+  implicit class RichOrg(org: Org) extends Logging {
 
-    lazy val membersAdminUrl = s"https://github.com/orgs/${org.getLogin}/members"
-
-    lazy val peopleRepo = org.getRepository("people")
-
-    lazy val teamsByName: Map[String, GHTeam] = org.getTeams().asScala.toMap
+    lazy val teamsByName: Map[String, Team] = org.getTeams().asScala.toMap
 
     lazy val allTeamOpt = teamsByName.get("all")
 
@@ -61,7 +58,7 @@ object Implicits {
 
     lazy val botsTeamOpt = teamsByName.get("bots")
 
-    def testMembership(user: GHUser): Boolean = {
+    def testMembership(user: User): Boolean = {
       if (user.isMemberOf(allTeam)) true else {
         val orgMember = user.isMemberOf(org)
         logger.info(s"user ${user.getLogin} NOT in 'all' team. orgMember=${orgMember}")

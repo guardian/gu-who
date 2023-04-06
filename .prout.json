@@ -1,5 +1,0 @@
-{
-  "checkpoints": {
-    "PROD": { "url": "https://gu-who.herokuapp.com/", "overdue": "14M" }
-  }
-}
