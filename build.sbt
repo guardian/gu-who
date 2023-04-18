@@ -29,7 +29,7 @@ libraryDependencies ++= Seq(
   filters,
   ws,
   "com.typesafe.akka" %% "akka-agent" % "2.3.2",
-  "org.webjars" % "bootstrap" % "3.3.5",
+  "org.webjars" % "bootstrap" % "3.3.7-1",
   "com.adrianhurt" %% "play-bootstrap3" % "0.4.4-P24",
   "com.madgag" %% "play-git-hub" % "2.3",
   "com.github.nscala-time" %% "nscala-time" % "2.6.0",
