@@ -16,60 +16,33 @@
 
 package lib
 
-import com.github.nscala_time.time.Imports._
-import com.madgag.github.GitHubCredentials
-import com.madgag.scalagithub.GitHubCredentials
-import lib.Implicits._
-import org.joda.time.DateTime
+import com.madgag.scalagithub.model.{Org, User}
+import com.madgag.scalagithub.{GitHub, GitHubCredentials}
 
-import java.nio.file.Files
-import scala.collection.convert.wrapAsScala._
+import java.nio.file.{Files, Path}
+import scala.concurrent.{ExecutionContext, Future}
 
 object AuditDef {
 
   val parentWorkDir = Files.createTempDirectory("gu-who-working-dir")
 
-  def safelyCreateFor(orgName: String, ghCreds: GitHubCredentials) = {
-    val org = ghCreds.conn().getOrganization(orgName)
-    AuditDef(org.getLogin, ghCreds)
+  def safelyCreateFor(orgName: String, ghCreds: GitHubCredentials)(implicit ec: ExecutionContext): Future[AuditDef] = {
+    val gitHub = new GitHub(ghCreds)
+    for {
+      org <- gitHub.getOrg(orgName)
+      bot <- gitHub.getUser()
+      botIsMemberOfOrg <- gitHub.checkMembership(org.login, bot.login)
+    } yield {
+      require(botIsMemberOfOrg)
+      AuditDef(org.result, bot.result, ghCreds)
+    }
   }
 }
 
-case class AuditDef(orgLogin: String, ghCreds: GitHubCredentials) {
+case class AuditDef(org: Org, bot: User, ghCreds: GitHubCredentials) {
 
-  val workingDir = AuditDef.parentWorkDir / orgLogin.toLowerCase
+  val workingDir: Path = Files.createTempDirectory(s"gu-who-${org.login.toLowerCase}")
 
-  workingDir.mkdirs()
-
-  lazy val (org, bot) = {
-    val c = ghCreds.conn()
-
-    val org = c.getOrganization(orgLogin)
-
-    val bot = c.getMyself
-
-    require(bot.isMemberOf(org))
-
-    (org, bot)
-  }
-
-  def ensureSeemsLegit() = {
-    require(bot.isMemberOf(org), s"Supplied bot account ${bot.atLogin} must be a member of ${org.atLogin}")
-
-    val publicMembers = org.listPublicMembers.toStream
-
-    lazy val publicOldMemberReqSummary =
-      s"""
-      |The organisation must have at least one public member whose GitHub account is over 3 months old.
-      |If your account is over 3 months old, please go to ${org.membersAdminUrl}
-      |and follow the 'make public' link against your user name. See also:
-      |https://help.github.com/articles/publicizing-or-concealing-organization-membership
-       """.stripMargin
-
-    require(publicMembers.nonEmpty,
-      s"Organisation ${org.atLogin} has no *public* members.$publicOldMemberReqSummary")
-    require(publicMembers.exists(_.createdAt < DateTime.now - 3.months),
-      s"Organisation ${org.atLogin} has ${publicMembers.size} public members, but none of those GitHub accounts are over 3 months old.$publicOldMemberReqSummary")
-  }
+  Files.createDirectories(workingDir)
 
 }

@@ -28,22 +28,22 @@ object Lambda extends Logging {
   implicit val actorSystem: ActorSystem = ActorSystem()
   implicit val mat: Materializer = Materializer(actorSystem)
 
-  def scan(auditDef: AuditDef) =  {
-    new Dogpile[OrgSnapshot](
-      for (orgSnapshot <- OrgSnapshot(auditDef)) yield {
-        logger.info(s"availableRequirementEvaluators=${orgSnapshot.availableRequirementEvaluators} ${orgSnapshot.orgUserProblemStats}")
+  implicit val g: com.madgag.scalagithub.GitHub = ???
 
-        if (orgSnapshot.soManyUsersHaveProblemsThatPerhapsTheGitHubAPIIsBroken) {
-          logger.error(s"usersWithProblemsCount=${orgSnapshot.usersWithProblemsCount} - it's possible the GitHub API is broken, so no action will be taken, to avoid spamming users")
-        } else {
-          orgSnapshot.createIssuesForNewProblemUsers()
+  def scan(auditDef: AuditDef) = {
+    for (orgSnapshot <- OrgSnapshot(auditDef)) yield {
+      logger.info(s"availableRequirementEvaluators=${orgSnapshot.availableRequirementEvaluators} ${orgSnapshot.orgUserProblemStats}")
 
-          orgSnapshot.updateExistingAssignedIssues()
+      if (orgSnapshot.soManyUsersHaveProblemsThatPerhapsTheGitHubAPIIsBroken) {
+        logger.error(s"usersWithProblemsCount=${orgSnapshot.usersWithProblemsCount} - it's possible the GitHub API is broken, so no action will be taken, to avoid spamming users")
+      } else {
+        orgSnapshot.createIssuesForNewProblemUsers()
 
-          orgSnapshot.closeUnassignedIssues()
-        }
-        orgSnapshot
+        orgSnapshot.updateExistingAssignedIssues()
+
+        orgSnapshot.closeUnassignedIssues()
       }
-    )
-  }.doAtLeastOneMore()
+      orgSnapshot
+    }
+  }
 }

@@ -21,13 +21,15 @@ import play.api.Logging
 
 import scala.util.{Success, Try}
 import com.github.nscala_time.time.Imports._
-import com.madgag.scalagithub.model.{Org, Team, User}
+import com.madgag.scalagithub.model.{Org, RepoId, Team, User}
 
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import org.kohsuke.github.GHOrganization.Permission
 
+import java.time.{ZoneId, ZoneOffset, ZonedDateTime}
 import scala.jdk.CollectionConverters._
+import scala.concurrent.{ExecutionContext => EC}
 
 object Implicits {
   implicit class RichFuture[S](f: Future[S]) {
@@ -46,33 +48,33 @@ object Implicits {
 
   implicit class RichOrg(org: Org) extends Logging {
 
-    lazy val teamsByName: Map[String, Team] = org.getTeams().asScala.toMap
+    val peopleRepoId: RepoId = RepoId(org.login, "people")
 
-    lazy val allTeamOpt = teamsByName.get("all")
+    // lazy val allTeamOpt = teamsByName.get("all")
 
-    lazy val allTeam =  {
-      val team = allTeamOpt.getOrElse(createAllTeam)
-      logger.info(s"'${team.getName}' team : permission=${team.getPermission} people-repo-access=${team.getRepositories.asScala.contains("people")}")
-      team
-    }
+//    lazy val allTeam =  {
+//      val team = allTeamOpt.getOrElse(createAllTeam)
+//      logger.info(s"'${team.getName}' team : permission=${team.getPermission} people-repo-access=${team.getRepositories.asScala.contains("people")}")
+//      team
+//    }
 
-    lazy val botsTeamOpt = teamsByName.get("bots")
+//    lazy val botsTeamOpt = teamsByName.get("bots")
 
-    def testMembership(user: User): Boolean = {
-      if (user.isMemberOf(allTeam)) true else {
-        val orgMember = user.isMemberOf(org)
-        logger.info(s"user ${user.getLogin} NOT in 'all' team. orgMember=${orgMember}")
-        if (orgMember) { allTeam.add(user) }
-        orgMember
-      }
-    }
+//    def testMembership(user: User): Boolean = {
+//      if (user.isMemberOf(allTeam)) true else {
+//        val orgMember = user.isMemberOf(org)
+//        logger.info(s"user ${user.atLogin} NOT in 'all' team. orgMember=${orgMember}")
+//        if (orgMember) { allTeam.add(user) }
+//        orgMember
+//      }
+//    }
 
-    def createAllTeam: GHTeam = {
-      logger.info(s"Creating 'all' team for ${org.atLogin}")
-      val team = org.createTeam("all", Permission.PULL)
-      team.add(peopleRepo)
-      team
-    }
+//    def createAllTeam: GHTeam = {
+//      logger.info(s"Creating 'all' team for ${org.atLogin}")
+//      val team = org.createTeam("all", Permission.PULL)
+//      team.add(peopleRepo)
+//      team
+//    }
   }
 
   implicit class RichTeam(team: GHTeam) {
@@ -93,5 +95,26 @@ object Implicits {
 
     lazy val displayName = Option(person.getName).filter(_.nonEmpty).getOrElse(atLogin)
 
+  }
+
+  implicit class RichZonedDateTime(zdt: ZonedDateTime) {
+    val asLegacyDateTime: DateTime =
+      new DateTime(zdt.toInstant.asLegacyJodaInstant, zdt.getZone.asLegacyDateTimeZone)
+  }
+
+  implicit class RichDateTime(dt: org.joda.time.DateTime) {
+    val asInstant: java.time.Instant = java.time.Instant.ofEpochMilli(dt.getMillis)
+  }
+
+  implicit class RichDateTimeZone(legacyDTZ: DateTimeZone) {
+    val asZoneId: ZoneId = ZoneId.of(legacyDTZ.getID)
+  }
+
+  implicit class RichZoneId(zoneId: ZoneId) {
+    val asLegacyDateTimeZone: DateTimeZone = DateTimeZone.forID(zoneId.getId)
+  }
+
+  implicit class RichInstant(instant: java.time.Instant) {
+    val asLegacyJodaInstant: org.joda.time.Instant = org.joda.time.Instant.ofEpochMilli(instant.toEpochMilli)
   }
 }

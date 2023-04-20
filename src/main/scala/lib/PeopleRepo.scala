@@ -48,10 +48,11 @@ object PeopleRepo extends Logging {
         client.sendAsync(request(URI.create(content.download_url)), BodyHandlers.ofString).asScala
     } yield {
       // if usersContentResponse.statusCode == 200
-      val sponsoredUserNames: Iterable[String] =
+      val sponsoredUserNames: Set[String] =
         usersContentResponse.body().linesIterator.collect { case UsernameRegex(username) => username }.toSet
 
       logger.info(s"Found ${sponsoredUserNames.size} sponsored usernames")
+      sponsoredUserNames
     }
   }
 

@@ -16,13 +16,18 @@
 
 package lib
 
-import org.kohsuke.github.{GHOrganization, GHUser, GHIssue}
-import collection.convert.wrapAll._
-import Implicits._
-import org.joda.time.DateTime
+import com.madgag.scalagithub.model.{Org, User}
+import lib.StateUpdate.markdownFor
+
+import java.time.Instant
 
 sealed trait StateUpdate {
   val issueCanBeClosed: Boolean
+}
+
+object StateUpdate {
+  def markdownFor(problems: Set[AccountRequirement])(implicit org: Org): String =
+    problems.map(p => s"* ${p.fixSummary}").mkString("\n")
 }
 
 case object UserHasLeftOrg extends StateUpdate {
@@ -31,7 +36,7 @@ case object UserHasLeftOrg extends StateUpdate {
 
 case class MemberUserUpdate(oldProblems: Set[AccountRequirement],
                             currentProblems: Set[AccountRequirement],
-                            terminationDate: DateTime,
+                            terminationDate: Instant,
                             orgMembershipWillBeConcealed: Boolean,
                             terminationWarning: Option[TerminationSchedule]) extends StateUpdate {
 
@@ -44,8 +49,34 @@ case class MemberUserUpdate(oldProblems: Set[AccountRequirement],
   val worthyOfComment = issueCanBeClosed || isChange || orgMembershipWillBeConcealed || userShouldReceiveFinalWarning
 
   val fixedRequirements = oldProblems -- currentProblems
+
+  def asMarkdown()(implicit org: Org): String = {
+    (Option.when(userShouldReceiveFinalWarning) {
+      "**WARNING:** If requirements for this account aren't met, it will be removed from " +
+        s"${org.displayName}'s organisation on ${terminationDate}."
+    } ++ Option.when(fixedRequirements.nonEmpty) {
+      s"Thanks for fixing those requirements (ie ${fixedRequirements.map(_.issueLabel).mkString(", ")})."
+    } ++ (if (issueCanBeClosed) Seq("Closing this issue, you're good to go! :sparkles:") else {
+      Seq(s"""These are the remaining requirements you need to address:
+         |
+         |${markdownFor(currentProblems)}
+         |
+         |""".stripMargin) ++ Option.when(orgMembershipWillBeConcealed)(
+        s"""We've made your membership of ${org.displayName}'s organisation on GitHub non-public, to make it less likely an attacker can find it.
+           |
+           |Once you've addressed the requirements above, you (and [only](https://help.github.com/articles/publicizing-or-hiding-organization-membership) you) can [re-publicise your membership](${org.membersAdminUrl}) if it's appropriate.
+           |""".stripMargin
+      )
+    })).mkString("\n\n")
+  }
 }
 
 case class MembershipTermination(problems: Set[AccountRequirement]) extends StateUpdate {
   override val issueCanBeClosed = true
+
+  def asMarkdown()(implicit user: User, org: Org): String = {
+    s"""Removing ${user.atLogin} from organisation. These were the outstanding requirements:
+       |
+       |${markdownFor(problems)}"""
+  }
 }

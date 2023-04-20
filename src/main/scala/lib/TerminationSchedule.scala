@@ -16,11 +16,13 @@
 
 package lib
 
-import org.joda.time.format.PeriodFormatterBuilder
 import com.github.nscala_time.time.Imports._
-import org.kohsuke.github.GHIssue
-import TerminationSchedule._
 import com.madgag.scalagithub.model.Issue
+import lib.Implicits._
+import lib.TerminationSchedule._
+import org.joda.time.format.{PeriodFormatter, PeriodFormatterBuilder}
+
+import java.time.Instant
 
 object TerminationSchedule {
 
@@ -28,7 +30,7 @@ object TerminationSchedule {
 
   val Relaxed = TerminationSchedule(4.weeks, 1.week)
 
-  val LabelPeriodFormatter = new PeriodFormatterBuilder()
+  val LabelPeriodFormatter: PeriodFormatter = new PeriodFormatterBuilder()
     .appendYears().appendSuffix("Y")
     .appendMonths().appendSuffix("M")
     .appendWeeks().appendSuffix("W")
@@ -36,13 +38,17 @@ object TerminationSchedule {
     .appendHours().appendSuffix("H")
     .appendMinutes().appendSuffix("M")
     .appendSecondsWithOptionalMillis().appendSuffix("S")
-    .toFormatter()
+    .toFormatter
 }
 
 case class TerminationSchedule(tolerancePeriod: Period, finalWarningPeriod: Period) {
   lazy val warnedLabel: String = "Warned"+LabelPeriodFormatter.print(finalWarningPeriod)
 
-  def terminationDateFor(issue: Issue) =
-    Seq(EarliestTerminationDate, issue.created_at + tolerancePeriod).max
+  def terminationDateFor(issue: Issue): Instant = (Seq(EarliestTerminationDate) ++ issue.created_at.map(
+      c => (c.asLegacyDateTime + tolerancePeriod).asInstant
+  )).max
+
+  def warningThresholdFor(issue: Issue): Instant =
+    (terminationDateFor(issue).asLegacyJodaInstant.toDateTime - finalWarningPeriod).asInstant
 
 }

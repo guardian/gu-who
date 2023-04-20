@@ -3,7 +3,7 @@ package com.gu.who.logging
 import ch.qos.logback.classic.spi.ILoggingEvent
 import com.amazonaws.services.lambda.runtime.LambdaRuntimeInternal
 import net.logstash.logback.layout.LogstashLayout
-import ophan.google.indexing.observatory.BuildInfo
+import com.gu.who.BuildInfo
 
 object UniqueIdForVM {
   val id = java.util.UUID.randomUUID.toString

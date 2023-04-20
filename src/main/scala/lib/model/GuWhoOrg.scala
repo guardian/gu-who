@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 The Guardian
+ * Copyright 2023 The Guardian
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,8 @@
  * limitations under the License.
  */
 
-package lib
+package lib.model
 
-import com.madgag.playgithub.auth.Client
+import com.madgag.scalagithub.model.{Org, Repo}
 
-object GithubAppConfig {
-
-  import play.api.Play.current
-  val config = play.api.Play.configuration
-
-  val authClient = {
-    val clientId = config.getString("github.clientId").getOrElse("blah")
-    val clientSecret = config.getString("github.clientSecret").getOrElse("blah")
-
-    Client(clientId, clientSecret)
-  }
-
-}
-
+case class GuWhoOrg(org: Org, peopleRepo: Repo)

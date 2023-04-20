@@ -18,12 +18,14 @@ package lib
 
 import akka.stream.Materializer
 import com.gu.who.logging.Logging
+import com.madgag.scala.collection.decorators.MapDecorator
 import com.madgag.scalagithub.GitHub.FR
 import com.madgag.scalagithub.commands.CreateComment
-import com.madgag.scalagithub.{GitHub, GitHubCredentials}
-import com.madgag.scalagithub.model.{Issue, Org, Repo, Team, User}
+import com.madgag.scalagithub.{GitHub, GitHubCredentials, GitHubResponse}
+import com.madgag.scalagithub.model.{Issue, Org, Repo, RepoId, Team, User}
 import lib.Implicits._
 import lib.gitgithub.RichSource
+import lib.model.{GuWhoOrg, GuWhoOrgUser}
 import play.api.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -31,51 +33,58 @@ import scala.concurrent._
 import scala.util.{Failure, Success, Try}
 
 object OrgSnapshot extends Logging {
-  
+
+  private def membersWithout2FA(org: Org)(implicit g: GitHub, mat: Materializer): Future[Set[User]] = {
+    org.members.list(Map("filter" -> "2fa_disabled")).all().map(_.toSet) andThen {
+      case us => logger.info(s"2fa_disabled count: ${us.map(_.size)}")
+    }
+  }
+
+  private def fetchAllOrgUsers(org: Org)(implicit g: GitHub, mat: Materializer): Future[Seq[User]] = for {
+    allOrgUsers <- org.members.list().all()
+    users <- Future.traverse(allOrgUsers)(u => g.getUser(u.login))
+  } yield {
+    logger.info(s"User count: ${users.size}")
+    users.map(_.result)
+  }
+
+  private def fetchAllUsersInTeam(org: Org, team_slug: String)(implicit github: GitHub, mat: Materializer): Future[Seq[User]] = for {
+    teamOpt <- github.getTeamByName(org.login, team_slug)
+    members <- Future.traverse(teamOpt.result.toSeq)(_.members.list().all()).map(_.flatten)
+  } yield {
+    logger.info(s"'$team_slug' team count: ${members.size}")
+    members
+  }
+
   def apply(auditDef: AuditDef)(implicit
     github: GitHub,
     mat: Materializer
   ): Future[OrgSnapshot] = {
-    val org: Org = ???
-    val peopleRepo: com.madgag.scalagithub.model.Repo = ???
+    val org: Org = auditDef.org
 
-    // val org = Await.result(github.getOrg(orgName), 4.seconds)
-
-    import lib.gitgithub
-
-    val allOrgUsersF: Future[Seq[User]] = org.members.list().all()
-    val usersF = allOrgUsersF flatMap {
-      Future.traverse(_)(u => github.getUser(u.login))
-    } andThen { case us => logger.info(s"User count: ${us.map(_.size)}") }
-
-    val sponsoredUserLoginsF: Future[Set[String]] = PeopleRepo.getSponsoredUserLogins(peopleRepo)
-
-    val botUsersF: Future[Set[User]] = Future {
-      org.botsTeamOpt.toSeq.flatMap(_.getMembers.toSeq).toSet
-    } andThen { case us => Logger.info(s"bots team count: ${us.map(_.size)}") }
-
-    val twoFactorAuthDisabledUsersF =
-      org.members.list(Map("filter" -> "2fa_disabled")).all().map(_.toSet) andThen {
-        case us => logger.info(s"2fa_disabled count: ${us.map(_.size)}")
-      }
-
-    val openIssuesF = Future {
-      peopleRepo.getIssues(GHIssueState.OPEN).toSet.filter(_.getUser==auditDef.bot)
-    } andThen { case is => Logger.info(s"Open issue count: ${is.map(_.size)}") }
+    val allOrgUsersF = fetchAllOrgUsers(org)
+    val usersInAllTeamF = fetchAllUsersInTeam(org, "all")
+    val usersInBotsTeamF = fetchAllUsersInTeam(org, "bots")
+    val twoFactorAuthDisabledUsersF = membersWithout2FA(org).trying
 
     for {
-      users <- usersF
-      sponsoredUserLogins <- sponsoredUserLoginsF
-      twoFactorAuthDisabledUsers <- twoFactorAuthDisabledUsersF.trying
-      openIssues <- openIssuesF
-      botUsers <- botUsersF
-    } yield OrgSnapshot(org, users, botUsers, sponsoredUserLogins, twoFactorAuthDisabledUsers, openIssues)
+      peopleRepoResp <- github.getRepo(org.peopleRepoId)
+      peopleRepo = peopleRepoResp.result
+      sponsoredUserLogins <- PeopleRepo.getSponsoredUserLogins(peopleRepo)
+      allOrgUsers <- allOrgUsersF
+      allBotUsers <- usersInBotsTeamF
+      twoFactorAuthDisabledUsers <- twoFactorAuthDisabledUsersF
+      openIssues <- peopleRepo.issues.list(Map("state" -> "open", "creator" -> auditDef.bot.login)).all()
+    } yield {
+      new OrgSnapshot(
+        org, peopleRepo, allOrgUsers, allBotUsers, sponsoredUserLogins, twoFactorAuthDisabledUsers, openIssues.toSet
+      )
+    }
   }
 }
 
 case class OrgSnapshot(
-  org: Org,
-  peopleRepo: Repo,
+  guWhoOrg: GuWhoOrg,
   allTeam: Team,
   botsTeam: Team,
   users: Set[User],
@@ -97,16 +106,14 @@ case class OrgSnapshot(
 
   lazy val requirementsWithUnavailableEvaluators = evaluatorsByRequirement.collect { case (ar, Failure(t)) => ar -> t }
 
-  lazy val orgUserProblemsByUser = users.map {
+  lazy val orgUserProblemsByUser: Map[User, OrgUserProblems] = users.map {
     user =>
       val applicableAvailableEvaluators = availableRequirementEvaluators.filter(_.appliesTo(user)).toSet
 
       user -> OrgUserProblems(
-        org,
-        user,
         applicableRequirements = applicableAvailableEvaluators.map(_.requirement),
         problems = applicableAvailableEvaluators.filterNot(_.isSatisfiedBy(user)).map(_.requirement)
-      )
+      )(GuWhoOrgUser(guWhoOrg, user))
   }.toMap
 
   lazy val usersWithProblemsCount = orgUserProblemsByUser.values.count(_.problems.nonEmpty)
@@ -117,7 +124,8 @@ case class OrgSnapshot(
 
   lazy val problemUsersExist = usersWithProblemsCount > 0
 
-  lazy val orgUserProblemStats = orgUserProblemsByUser.values.map(_.problems.size).groupBy(identity).mapValues(_.size)
+  lazy val orgUserProblemStats: Map[Int, Int] =
+    orgUserProblemsByUser.values.map(_.problems.size).groupBy(identity).mapV(_.size)
 
   def updateExistingAssignedIssues() {
     for {

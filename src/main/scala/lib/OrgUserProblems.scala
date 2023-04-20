@@ -18,45 +18,82 @@ package lib
 
 import org.kohsuke.github.{GHIssue, GHOrganization, GHUser}
 import Implicits._
-
-import collection.convert.wrapAsScala._
+import akka.stream.Materializer
 import play.api.Logger
 import views.html._
 import com.github.nscala_time.time.Imports._
-import com.madgag.scalagithub.model.Issue
+import com.gu.who.logging.Logging
+import com.madgag.scalagithub.{GitHub, GitHubResponse}
+import com.madgag.scalagithub.commands.{CreateComment, CreateIssue}
+import com.madgag.scalagithub.model.{Issue, Org, User}
+import lib.gitgithub.RichSource
+import lib.model.GuWhoOrgUser
 
-case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirements: Set[AccountRequirement], problems: Set[AccountRequirement]) {
+import scala.math.Ordering.Implicits._
+import java.time.Instant
+import scala.concurrent.{ExecutionContext, Future}
+
+case class OrgUserProblems(
+  applicableRequirements: Set[AccountRequirement],
+  problems: Set[AccountRequirement]
+)(implicit guWhoOrgUser: GuWhoOrgUser) extends Logging {
+
+  implicit val org = guWhoOrgUser.guWhoOrg.org
+  implicit val user = guWhoOrgUser.user
+  val peopleRepo = guWhoOrgUser.guWhoOrg.peopleRepo
+
+  val schedule = TerminationSchedule.Relaxed
 
   lazy val applicableLabels: Set[String] = applicableRequirements.map(_.issueLabel)
 
-  def createIssue() {
+  def createIssue()(implicit g: GitHub, ec: ExecutionContext) {
     require(problems.nonEmpty)
 
     if (org.testMembership(user)) {
-      Logger.info(s"Creating issue for ${user.getLogin} $problems")
+      logger.info(s"Creating issue for ${user.atLogin} $problems")
 
-      val title = s"@${user.getLogin}: ${org.displayName} asks you to fix your GitHub account!"
-      val description = views.html.ghIssues.issue(user, org, problems).body
+      val title = s"${user.atLogin}: ${org.displayName} asks you to fix your GitHub account!"
 
-      val issue = org.peopleRepo.createIssue(title)
+      val issue = peopleRepo.createIssue(title, newIssueDescription)
+
       for (p <- problems) { issue.label(p.issueLabel) }
-      val createdIssue = issue.assignee(user).body(description).create()
-      Logger.info(s"Created issue #${createdIssue.getNumber} for ${user.getLogin}")
+      val createdIssue = issue.assignee(user).body(newIssueDescription).create()
+      logger.info(s"Created issue #${createdIssue.getNumber} for ${user.atLogin}")
     } else {
-      Logger.info(s"No need to create an issue for ${user.getLogin} - they are no longer a member of the ${org.getLogin} org")
+      logger.info(s"No need to create an issue for ${user.atLogin} - they are no longer a member of the ${org.atLogin} org")
     }
   }
 
-  def updateIssue(issue: Issue) {
-    val stateUpdate = stateUpdateFor(issue)
-    Logger.info(s"Updating issue for ${user.getLogin} with $stateUpdate")
+  def newIssueDescription: String = {
+   s"""Hi ${user.atLogin} - you're a member of [${org.displayName}](${org.html_url})'s organisation on GitHub, but our
+       |audit-bot has noticed your GitHub account isn't fully set up to meet the standards we need.
+       |
+       |If you're no longer supposed to be a member of the organisation, please use your
+       |[GitHub organisation settings](https: //github.com/settings/organizations) page to leave.
+       |
+       |Otherwise, we just need you to help us with a few things to keep our code safe and secure on GitHub:
+       |
+       |${lib.StateUpdate.markdownFor(problems)}
+       |
+       |You have a limited amount of time to fix these issues, otherwise you 'll be automatically removed from
+       |this organisation.
+       |
+       |Thanks for helping us out - it makes our lives a lot easier, and help keeps our code secure!
+       |""".stripMargin
+  }
+
+  def updateIssue(issue: Issue)(implicit g: GitHub, ec: ExecutionContext, m: Materializer) = for {
+      stateUpdate <- stateUpdateFor(issue)
+  } {
+    logger.info(s"Updating issue for ${org.atLogin} with $stateUpdate")
 
     stateUpdate match {
       case UserHasLeftOrg =>
-        issue.comment(views.html.ghIssues.userHasLeftOrg(org, user).body)
-
+        issue.comments2.create(CreateComment(
+          s"Closing this issue, as ${user.atLogin} has left the ${org.displayName} organisation."
+        ))
       case membershipTermination: MembershipTermination =>
-        issue.comment(views.html.ghIssues.membershipTermination(user, membershipTermination)(org).body)
+        issue.createComment(membershipTermination.asMarkdown())
         org.remove(user)
       case update: MemberUserUpdate =>
         if (update.orgMembershipWillBeConcealed) {
@@ -64,7 +101,7 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
         }
 
         if (update.worthyOfComment) {
-          issue.comment(views.html.ghIssues.memberUserUpdate(update)(org).body)
+          issue.createComment(update.asMarkdown())
         }
 
         val oldLabelSet = issue.labelNames.toSet
@@ -79,35 +116,36 @@ case class OrgUserProblems(org: GHOrganization, user: GHUser, applicableRequirem
     }
   }
   
-  def stateUpdateFor(issue: Issue): StateUpdate = if (!org.testMembership(user)) UserHasLeftOrg else {
-    val oldLabels = issue.getLabels.map(_.getName).toSet
+  def stateUpdateFor(issue: Issue)(implicit g: GitHub, ec: ExecutionContext, m: Materializer): Future[StateUpdate] = {
+    def stateUpdateGiven(userIsMember: Boolean): Future[StateUpdate] = if (!userIsMember) Future.successful(UserHasLeftOrg) else {
+      val terminationDate: Instant = schedule.terminationDateFor(issue)
+      val now = Instant.now
 
-    val oldBotLabels = oldLabels.filter(applicableLabels)
+      if (now > terminationDate) Future.successful(MembershipTermination(problems)) else for {
+        labels <- issue.labels.list().all()
+        userIsPublicMemberOfOrg <- org.publicMembers.check(user.login)
+      } yield {
+        val oldLabels: Set[String] = labels.map(_.name).toSet
+        val oldProblems = oldLabels.filter(applicableLabels).map(AccountRequirements.RequirementsByLabel)
 
-    val oldProblems = oldBotLabels.map(AccountRequirements.RequirementsByLabel)
+        val userShouldBeWarned = problems.nonEmpty && now > schedule.warningThresholdFor(issue)
+        val userHasBeenWarned = oldLabels.contains(schedule.warnedLabel)
+        val userShouldReceiveFinalWarning = userShouldBeWarned && !userHasBeenWarned
 
-    val schedule = TerminationSchedule.Relaxed
-
-    val terminationDate = schedule.terminationDateFor(issue)
-
-    val now = DateTime.now
-
-    if (now > terminationDate) MembershipTermination(problems) else {
-
-      val userShouldBeWarned = problems.nonEmpty && now > (terminationDate - schedule.finalWarningPeriod)
-
-      val userHasBeenWarned = issue.getLabels.exists(_.getName == schedule.warnedLabel)
-
-      val userShouldReceiveFinalWarning = userShouldBeWarned && !userHasBeenWarned
-
-      MemberUserUpdate(
-        oldProblems,
-        problems,
-        terminationDate,
-        orgMembershipWillBeConcealed = problems.nonEmpty && org.hasPublicMember(user),
-        terminationWarning = Some(schedule).filter(_ => userShouldReceiveFinalWarning)
-      )
+        MemberUserUpdate(
+          oldProblems,
+          problems,
+          terminationDate,
+          orgMembershipWillBeConcealed = problems.nonEmpty && userIsPublicMemberOfOrg,
+          terminationWarning = Option.when(userShouldReceiveFinalWarning)(schedule)
+        )
+      }
     }
+
+    for {
+      userIsMember <- org.members.check(user.login)
+      stateUpdate <- stateUpdateGiven(userIsMember.result)
+    } yield stateUpdate
   }
 }
 
