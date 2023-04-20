@@ -56,6 +56,8 @@ case class OrgUserProblems(
 
       val issue = peopleRepo.createIssue(title, newIssueDescription)
 
+      // goodfgodgdog
+
       for (p <- problems) { issue.label(p.issueLabel) }
       val createdIssue = issue.assignee(user).body(newIssueDescription).create()
       logger.info(s"Created issue #${createdIssue.getNumber} for ${user.atLogin}")
