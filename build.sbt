@@ -35,7 +35,7 @@ libraryDependencies ++= Seq(
   "com.github.nscala-time" %% "nscala-time" % "2.6.0",
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1",
   "com.madgag.scala-git" %% "scala-git-test" % "3.3" % "test",
-  "org.scalatestplus" %% "play" % "1.4.0-M4" % "test"
+  "org.scalatestplus" %% "play" % "1.4.0" % "test"
 )     
 
 sources in (Compile,doc) := Seq.empty
