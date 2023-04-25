@@ -16,34 +16,35 @@
 
 package lib
 
+import com.github.nscala_time.time.Imports._
+import com.madgag.scalagithub.GitHub
+import com.madgag.scalagithub.GitHub.FR
+import com.madgag.scalagithub.model.{Issue, Org, RepoId}
 import org.kohsuke.github._
 import play.api.Logging
 
-import scala.util.{Success, Try}
-import com.github.nscala_time.time.Imports._
-import com.madgag.scalagithub.model.{Org, RepoId, Team, User}
-
+import java.time.{ZoneId, ZonedDateTime}
 import scala.concurrent._
-import ExecutionContext.Implicits.global
-import org.kohsuke.github.GHOrganization.Permission
-
-import java.time.{ZoneId, ZoneOffset, ZonedDateTime}
-import scala.jdk.CollectionConverters._
-import scala.concurrent.{ExecutionContext => EC}
+import scala.util.{Success, Try}
 
 object Implicits {
   implicit class RichFuture[S](f: Future[S]) {
-    lazy val trying = {
+    def trying(implicit ec: ExecutionContext): Future[Try[S]] = {
       val p = Promise[Try[S]]()
       f.onComplete { case t => p.complete(Success(t)) }
       p.future
     }
   }
 
-  implicit class RichIssue(issue: GHIssue) {
-    lazy val assignee = Option(issue.getAssignee)
+  implicit class RichIssue(issue: Issue) {
+//    lazy val assignee = Option(issue.getAssignee)
+//
+//    lazy val labelNames = issue.getLabels.asScala.map(_.getName)
 
-    lazy val labelNames = issue.getLabels.asScala.map(_.getName)
+    def commentAndClose(text: String)(implicit g: GitHub, ec: ExecutionContext): FR[Issue] = for {
+      _ <- issue.createComment(text)
+      issue <- issue.close()
+    } yield issue
   }
 
   implicit class RichOrg(org: Org) extends Logging {

@@ -77,7 +77,7 @@ object OrgSnapshot extends Logging {
       openIssues <- peopleRepo.issues.list(Map("state" -> "open", "creator" -> auditDef.bot.login)).all()
     } yield {
       new OrgSnapshot(
-        org, peopleRepo, allOrgUsers, allBotUsers, sponsoredUserLogins, twoFactorAuthDisabledUsers, openIssues.toSet
+        GuWhoOrg(org, peopleRepo), allOrgUsers.toSet, allBotUsers.toSet, sponsoredUserLogins, twoFactorAuthDisabledUsers, openIssues.toSet
       )
     }
   }
@@ -85,8 +85,6 @@ object OrgSnapshot extends Logging {
 
 case class OrgSnapshot(
   guWhoOrg: GuWhoOrg,
-  allTeam: Team,
-  botsTeam: Team,
   users: Set[User],
   botUsers: Set[User],
   sponsoredUserLogins: Set[String],
@@ -127,32 +125,35 @@ case class OrgSnapshot(
   lazy val orgUserProblemStats: Map[Int, Int] =
     orgUserProblemsByUser.values.map(_.problems.size).groupBy(identity).mapV(_.size)
 
-  def updateExistingAssignedIssues() {
-    for {
+  def updateExistingAssignedIssues()(implicit gitHub: GitHub, mat: Materializer) = {
+    val issuesWithUserProblems: Set[(Issue, OrgUserProblems)] = for {
       issue <- openIssues
       user <- issue.assignee
       orgUserProblems <- orgUserProblemsByUser.get(user)
-    } orgUserProblems.updateIssue(issue)
-  }
+    } yield issue -> orgUserProblems
 
-  def closeUnassignedIssues()(implicit gitHub: GitHub): Future[Unit] = {
-    for {
-      issue: Issue <- openIssues if issue.assignee.isEmpty
-    } {
-      issue.comments2.create(CreateComment(
-        "Closing this issue as it's not assigned to any user, so this bot can not process it. " +
-          "Perhaps the user account was deleted?"
-      ))
-
-      issue.close()
+    Future.traverse(issuesWithUserProblems) { case (issue, orgUserProblem) =>
+      for {
+        labels <- issue.labels.list().all()
+      } yield orgUserProblem.updateIssue(IssueWithLabels(issue, labels.toSet))
     }
   }
 
-  def createIssuesForNewProblemUsers() {
-    val usersWithOpenIssues = openIssues.flatMap(_.assignee)
-    for {
-      (user, orgUserProblems) <- orgUserProblemsByUser -- usersWithOpenIssues
-      if orgUserProblems.problems.nonEmpty
-    } orgUserProblems.createIssue()
+  def closeUnassignedIssues()(implicit g: GitHub): Future[Set[GitHubResponse[Issue]]] = {
+    Future.traverse(openIssues.filter(_.assignee.isEmpty)) {
+      _.commentAndClose("Closing this issue as it's not assigned to any user, so this bot can not process it. " +
+        "Perhaps the user account was deleted?")
+    }
+  }
+
+  def createIssuesForNewProblemUsers()(implicit gitHub: GitHub) {
+    val usersWithOpenIssues: Set[Long] = openIssues.flatMap(_.assignee).map(_.id)
+
+    val orgUserProblemsList: Set[OrgUserProblems] =
+      orgUserProblemsByUser.view.filterKeys(user => usersWithOpenIssues.contains(user.id)).values
+        .filter(_.problems.nonEmpty)
+        .toSet
+
+    Future.traverse(orgUserProblemsList)(_.createIssue())
   }
 }
