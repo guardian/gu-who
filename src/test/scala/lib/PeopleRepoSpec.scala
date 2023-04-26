@@ -3,10 +3,13 @@ package lib
 import com.madgag.git.test._
 import org.scalatestplus.play.PlaySpec
 
-import scalax.file.ImplicitConversions._
-import scalax.file.Path
 
-class PeopleRepoSpec extends PlaySpec {
+class PeopleRepoSpec extends AnyFlatSpec {
+
+  val githubToken = sys.env("PROUT_GITHUB_ACCESS_TOKEN")
+
+  val githubCredentials =
+    GitHubCredentials.forAccessKey(githubToken, Files.createTempDirectory("tmpDirPrefix")).get
 
   "Retrieving sponsored users" should {
     "extract sponsored user logins after cloning a remote repo" in {
