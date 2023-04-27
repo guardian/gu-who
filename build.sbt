@@ -31,7 +31,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-agent" % "2.3.2",
   "org.webjars" % "bootstrap" % "3.3.5",
   "com.adrianhurt" %% "play-bootstrap3" % "0.4.4-P24",
-  "com.madgag" %% "play-git-hub" % "2.5",
+  "com.madgag" %% "play-git-hub" % "4.6",
   "com.github.nscala-time" %% "nscala-time" % "2.32.0",
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1",
   "com.madgag.scala-git" %% "scala-git-test" % "3.5" % "test",
