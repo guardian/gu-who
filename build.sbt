@@ -34,7 +34,7 @@ libraryDependencies ++= Seq(
   "com.madgag" %% "play-git-hub" % "2.3",
   "com.github.nscala-time" %% "nscala-time" % "2.32.0",
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1",
-  "com.madgag.scala-git" %% "scala-git-test" % "3.3" % "test",
+  "com.madgag.scala-git" %% "scala-git-test" % "3.5" % "test",
   "org.scalatestplus" %% "play" % "1.4.0" % "test"
 )     
 
