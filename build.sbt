@@ -21,7 +21,8 @@ riffRaffArtifactResources := Seq(
 resolvers ++= Resolver.sonatypeOssRepos("releases")
 
 libraryDependencies ++= Seq(
-  "com.madgag" %% "play-git-hub" % "5.6-SNAPSHOT",
+  "com.madgag.play-git-hub" %% "core" % "5.10",
+  "com.madgag.play-git-hub" %% "testkit" % "5.10" % Test,
   "org.kohsuke" % "github-api" % "1.314",
   "com.github.nscala-time" %% "nscala-time" % "2.32.0",
   "com.madgag.scala-git" %% "scala-git-test" % "4.6" % Test,

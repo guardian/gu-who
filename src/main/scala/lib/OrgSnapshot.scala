@@ -18,15 +18,13 @@ package lib
 
 import akka.stream.Materializer
 import com.gu.who.logging.Logging
+import com.madgag.github.Implicits._
 import com.madgag.scala.collection.decorators.MapDecorator
 import com.madgag.scalagithub.GitHub.FR
 import com.madgag.scalagithub.commands.CreateComment
 import com.madgag.scalagithub.{GitHub, GitHubCredentials, GitHubResponse}
 import com.madgag.scalagithub.model.{Issue, Org, Repo, RepoId, Team, User}
-import lib.Implicits._
-import lib.gitgithub.RichSource
 import lib.model.{GuWhoOrg, GuWhoOrgUser}
-import play.api.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
@@ -60,7 +58,7 @@ object OrgSnapshot extends Logging {
     github: GitHub,
     mat: Materializer
   ): Future[OrgSnapshot] = {
-    val org: Org = auditDef.org
+    val org: Org = auditDef.guWhoOrg
 
     val allOrgUsersF = fetchAllOrgUsers(org)
     val usersInAllTeamF = fetchAllUsersInTeam(org, "all")
@@ -75,11 +73,9 @@ object OrgSnapshot extends Logging {
       allBotUsers <- usersInBotsTeamF
       twoFactorAuthDisabledUsers <- twoFactorAuthDisabledUsersF
       openIssues <- peopleRepo.issues.list(Map("state" -> "open", "creator" -> auditDef.bot.login)).all()
-    } yield {
-      new OrgSnapshot(
-        GuWhoOrg(org, peopleRepo), allOrgUsers.toSet, allBotUsers.toSet, sponsoredUserLogins, twoFactorAuthDisabledUsers, openIssues.toSet
-      )
-    }
+    } yield OrgSnapshot(
+      GuWhoOrg(org, peopleRepo), allOrgUsers.toSet, allBotUsers.toSet, sponsoredUserLogins, twoFactorAuthDisabledUsers, openIssues.toSet
+    )
   }
 }
 
