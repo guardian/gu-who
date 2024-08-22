@@ -36,7 +36,8 @@ libraryDependencies ++= Seq(
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1",
   "com.madgag.scala-git" %% "scala-git-test" % "3.5" % "test",
   "org.scalatestplus" %% "play" % "1.4.0" % "test"
-)     
+)
+libraryDependencies += "org.kohsuke" % "github-api" % "1.323"
 
 sources in (Compile,doc) := Seq.empty
 
