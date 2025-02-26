@@ -1,3 +1,19 @@
+### This project is currently archived
+
+_gu:who?_ was introduced in 2014, and was good at enforcing 3 things:
+
+* Enforcing 2FA - this is now [the default across all of GitHub](https://docs.github.com/en/organizations/keeping-your-organization-secure/managing-two-factor-authentication-for-your-organization/requiring-two-factor-authentication-in-your-organization)
+* Requiring users to set a non-empty and hopefully recognizable Display Name
+* an audit log (in the 'people' repo) that gives an idea of where a user came from
+
+The first of these 3 is now irrelevant, and the last two are prompted by the question "who _is_ this user in our org?",
+which can also be given reasonable context by the use of GitHub Teams (a feature that was not widely used when _gu:who?_
+was created)- ie if every GitHub user in an org is a member of a not-too-huge-team, then it becomes easy for that team
+to bear some responsibilty for knowing who that team member is, and for the name of that team to be a clue in any case.
+
+While we at the Guardian are completing some changes to infrastructure, it's most expedient to turn _gu:who?_ off, at
+least for a while, and possibly permanently.
+
 GU: Who?
 ========
 
